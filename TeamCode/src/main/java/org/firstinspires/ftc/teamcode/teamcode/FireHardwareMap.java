@@ -21,6 +21,9 @@ public class FireHardwareMap {
     public DcMotor frontLeftMotor = null;
     public DcMotor backRightMotor = null;
     public DcMotor backLeftMotor = null;
+    public DcMotor intakeMotor = null;
+    public DcMotor leftOutTake = null;
+    public DcMotor rightOutTake = null;
     public BNO055IMU imu;
 
     public CRServo goonerServo = null;
@@ -47,6 +50,10 @@ public class FireHardwareMap {
         frontLeftMotor = HardwareMap.get(DcMotor.class, "frontLeftMotor");
         backRightMotor = HardwareMap.get(DcMotor.class, "backRightMotor");
         backLeftMotor = HardwareMap.get(DcMotor.class, "backLeftMotor");
+        intakeMotor = HardwareMap.get(DcMotor.class, "intakeMotor");
+        leftOutTake = HardwareMap.get(DcMotor.class, "leftOutTake");
+        rightOutTake = HardwareMap.get(DcMotor.class, "rightOutTake");
+
         // imu = HardwareMap.get(BNO055IMU.class, "imuex");
        // led = HardwareMap.get(RevBlinkinLedDriver.class, "led");
        // color = HardwareMap.get(ColorRangeSensor.class, "color");
@@ -60,6 +67,10 @@ public class FireHardwareMap {
         backRightMotor.setDirection(DcMotor.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
 
+        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
+        rightOutTake.setDirection(DcMotor.Direction.FORWARD);
+        leftOutTake.setDirection(DcMotor.Direction.REVERSE);
+
         goonerServo.setDirection(CRServo.Direction.FORWARD);
 
         //Set motor mode
@@ -68,6 +79,11 @@ public class FireHardwareMap {
         backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightOutTake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftOutTake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
 
         //Set zero power behavior
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -75,12 +91,22 @@ public class FireHardwareMap {
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightOutTake.setMode(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftOutTake.setMode(DcMotor.ZeroPowerBehavior.BRAKE);
+
+
+
 
         //Set 0 power
         frontRightMotor.setPower(0);
         frontLeftMotor.setPower(0);
         backRightMotor.setPower(0);
         backLeftMotor.setPower(0);
+
+        intakeMotor.setPower(0);
+        leftOutTake.setPower(0);
+        rightOutTake.setPower(0);
 
 
         // .setPosition(Constants.ARMSERVO_HOMEPOSITION);

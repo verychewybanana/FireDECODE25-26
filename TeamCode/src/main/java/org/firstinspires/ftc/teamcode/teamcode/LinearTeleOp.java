@@ -109,8 +109,9 @@ public class LinearTeleOp extends LinearOpMode {
             double rightFrontPower = axial - lateral - yaw;
             double leftBackPower = axial - lateral + yaw;
             double rightBackPower = axial + lateral - yaw;
-
-            double goonerServoPower;
+            double intakeMotorPower;
+            double leftOutTakePower;
+            double rightOutTakePower;
 
 
             // Normalize the values so no wheel power exceeds 100%
@@ -139,11 +140,20 @@ public class LinearTeleOp extends LinearOpMode {
                 rightBackPower /= 2;
             }
 
-            if (gamepad2.right_bumper)
-                goonerServoPower = 0.9;
-            else
-                goonerServoPower = 0;
 
+            if (gamepad2.a) {
+                intakeMotorPower = 0.9;
+            } else
+                intakeMotorPower = 0.0;
+            }
+
+            if (gamepad2.b) {
+                leftOutTakePower = 0.9;
+                rightOutTakePower = 0.9;
+            } else {
+                leftOutTakePower = 0.0;
+                rightOutTakePower = 0;
+            }
 
             yaw2 = yaw2 / 1.5;
 
@@ -152,11 +162,9 @@ public class LinearTeleOp extends LinearOpMode {
             HW.frontRightMotor.setPower(rightFrontPower);
             HW.backLeftMotor.setPower(leftBackPower * 1.1);
             HW.backRightMotor.setPower(rightBackPower * 1.1);
-
-
-            // HW.armServo.setPosition(armServoPosition);
-            HW.goonerServo.setPower(goonerServoPower);
-
+            HW.intakeMotor.setPower(intakeMotorPower);
+            HW.leftOutTake.setPower(leftOutTakePower);
+            HW.rightOutTake.setPower(rightOutTakePower);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
