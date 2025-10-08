@@ -1,104 +1,104 @@
-package org.firstinspires.ftc.teamcode.RRAutons;/*
-package org.firstinspires.ftc.teamcode.RRAutons;
+//package org.firstinspires.ftc.teamcode.roadrunner;
+//package org.firstinspires.ftc.teamcode.RRAutons;
 
-import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+//import com.acmerobotics.roadrunner.geometry.Pose2d;
+//import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+//import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.FireHardwareMap;
-import org.firstinspires.ftc.teamcode.RRAutons.opencv.BluePositionDetector;
-import org.firstinspires.ftc.teamcode.RRAutons.opencv.RedPositionDetector;
-import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
+//import org.firstinspires.ftc.teamcode.FireHardwareMap;
+//import org.firstinspires.ftc.teamcode.RRAutons.opencv.BluePositionDetector;
+//import org.firstinspires.ftc.teamcode.RRAutons.opencv.RedPositionDetector;
+//import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
+//import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 
-@Autonomous(name="roadRunnerBlueBackboard", group="Auton")
-public class roadRunnerBlueBackboard extends LinearOpMode {
-
-
-    FireHardwareMap robot = null;
-    boolean recognized;
+//@Autonomous(name="roadRunnerBlueBackboard", group="Auton")
+//public class roadRunnerBlueBackboard extends LinearOpMode {
 
 
-    @Override
-    public void runOpMode() {
-        BluePositionDetector pd = new BluePositionDetector(hardwareMap, telemetry);
+//  FireHardwareMap robot = null;
+//  boolean recognized;
 
-        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
-        robot = new FireHardwareMap(this.hardwareMap);
 
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
+//  @Override
+//  public void runOpMode() {
+//      BluePositionDetector pd = new BluePositionDetector(hardwareMap, telemetry);
+//
+//      SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+//      robot = new FireHardwareMap(this.hardwareMap);
+//
+//      telemetry.addData("Status", "Initialized");
+//      telemetry.update();
+//
+//      Pose2d startPose = new Pose2d(0, 0, Math.toRadians(0));
+//      drive.setPoseEstimate(startPose);
+//
+//      TrajectorySequence beginLeft = drive.trajectorySequenceBuilder(startPose)
+//              .strafeLeft(15)
+//              .build();
+//
+//      TrajectorySequence navigateLeft = drive.trajectorySequenceBuilder(beginLeft.end())
+//              .strafeRight(3)
+//              .forward(13.0)
+//              .build();
+//
+//      TrajectorySequence scoreFromLeft = drive.trajectorySequenceBuilder(navigateLeft.end())
+//              .strafeLeft(29.0)
+//              .turn(Math.toRadians(-90))
+//              .strafeLeft(10)
+//              .back(5.5)
+//              .build();
+//
+//      TrajectorySequence parkFromLeft = drive.trajectorySequenceBuilder(scoreFromLeft.end())
+//              .strafeLeft(19)
+//              .build();
+//
+//      TrajectorySequence navigateMiddle = drive.trajectorySequenceBuilder(navigateLeft.end())
+//              .waitSeconds(0.2)
+//              .strafeRight(4.0)
+//              .forward(11.0)
+//              .build();
 
-        Pose2d startPose = new Pose2d(0, 0, Math.toRadians(0));
-        drive.setPoseEstimate(startPose);
-
-        TrajectorySequence beginLeft = drive.trajectorySequenceBuilder(startPose)
-                .strafeLeft(15)
+//        TrajectorySequence moveBackMid = drive.trajectorySequenceBuilder(navigateMiddle.end())
+//                .back(11.0)
                 .build();
 
-        TrajectorySequence navigateLeft = drive.trajectorySequenceBuilder(beginLeft.end())
-                .strafeRight(3)
-                .forward(13.0)
-                .build();
-
-        TrajectorySequence scoreFromLeft = drive.trajectorySequenceBuilder(navigateLeft.end())
-                .strafeLeft(29.0)
-                .turn(Math.toRadians(-90))
-                .strafeLeft(10)
-                .back(5.5)
-                .build();
-
-        TrajectorySequence parkFromLeft = drive.trajectorySequenceBuilder(scoreFromLeft.end())
-                .strafeLeft(19)
-                .build();
-
-        TrajectorySequence navigateMiddle = drive.trajectorySequenceBuilder(navigateLeft.end())
-                .waitSeconds(0.2)
-                .strafeRight(4.0)
-                .forward(11.0)
-                .build();
-
-        TrajectorySequence moveBackMid = drive.trajectorySequenceBuilder(navigateMiddle.end())
-                .back(11.0)
-                .build();
-
-        TrajectorySequence pushPixelMid = drive.trajectorySequenceBuilder(moveBackMid.end())
+//       TrajectorySequence pushPixelMid = drive.trajectorySequenceBuilder(moveBackMid.end())
                 .forward(14.0)
                 .build();
 
-        TrajectorySequence scoreFromMiddle = drive.trajectorySequenceBuilder(pushPixelMid.end())
+//      TrajectorySequence scoreFromMiddle = drive.trajectorySequenceBuilder(pushPixelMid.end())
                 .waitSeconds(0.2)
                 .strafeLeft(29.0)
                 .turn(Math.toRadians(-90))
                 .back(9.0)
                 .build();
 
-        TrajectorySequence parkFromMiddle = drive.trajectorySequenceBuilder(scoreFromMiddle.end())
+//      TrajectorySequence parkFromMiddle = drive.trajectorySequenceBuilder(scoreFromMiddle.end())
                 .strafeLeft(16)
                 .build();
 
-        TrajectorySequence navigateRight = drive.trajectorySequenceBuilder(navigateMiddle.end())
+//      TrajectorySequence navigateRight = drive.trajectorySequenceBuilder(navigateMiddle.end())
                 .turn(Math.toRadians(-90))
                 .build();
 
-        TrajectorySequence backUpRight = drive.trajectorySequenceBuilder(navigateRight.end())
+//      TrajectorySequence backUpRight = drive.trajectorySequenceBuilder(navigateRight.end())
                 .back(8)
                 .build();
 
-        TrajectorySequence pushPixelRight = drive.trajectorySequenceBuilder(backUpRight.end())
+//      TrajectorySequence pushPixelRight = drive.trajectorySequenceBuilder(backUpRight.end())
                 .forward(9)
                 .build();
 
-        TrajectorySequence scoreFromRight = drive.trajectorySequenceBuilder(pushPixelRight.end())
+//      TrajectorySequence scoreFromRight = drive.trajectorySequenceBuilder(pushPixelRight.end())
                 .waitSeconds(0.2)
                 .back(40.0)
                 .strafeLeft(10)
                 .build();
 
-        TrajectorySequence parkFromRight = drive.trajectorySequenceBuilder(scoreFromRight.end())
+//      TrajectorySequence parkFromRight = drive.trajectorySequenceBuilder(scoreFromRight.end())
                 .strafeLeft(10)
                 .build();
-
+/*
         waitForStart();
 
         pd.startStreaming();
