@@ -234,7 +234,9 @@ public class LinearTeleOp extends LinearOpMode {
             // --- Your other logic (intake, etc.) ---
             // This code is outside the if/else, so it runs all the time
             double intakeMotorPower;
-            double outTakeMotorPower;
+            double outTakeMotorLeftPower;
+            double outTakeMotorRightPower;
+
             double yaw2 = gamepad2.right_stick_x; // This line was in your original code
 
             if (gamepad2.left_bumper) {
@@ -244,15 +246,19 @@ public class LinearTeleOp extends LinearOpMode {
             }
 
             if (gamepad2.right_bumper) {
-                outTakeMotorPower = 0.2;
-            } else
-                outTakeMotorPower = 0;
+                outTakeMotorLeftPower = 0.2;
+                outTakeMotorRightPower = 0.2;
+            } else {
+                outTakeMotorLeftPower = 0;
+                outTakeMotorRightPower = 0.2;
+            }
 
             yaw2 = yaw2 / 1.5;
 
             // Send calculated power to non-drive motors
             HW.intakeMotor.setPower(intakeMotorPower + 0.4);
-            HW.outTakeMotor.setPower(outTakeMotorPower + 0.4);
+            HW.outTakeMotorLeft.setPower(outTakeMotorLeftPower + 0.4);
+            HW.outTakeMotorRight.setPower(outTakeMotorRightPower + 0.4);
 
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
