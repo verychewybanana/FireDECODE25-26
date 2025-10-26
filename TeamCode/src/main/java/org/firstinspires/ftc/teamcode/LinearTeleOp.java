@@ -270,7 +270,7 @@ public class LinearTeleOp extends LinearOpMode {
             telemetry.addData("LED blue", HW.color.blue());
             telemetry.addData("LED ARGB", HW.color.argb());
 */
-            telemetry.update(); // Update all telemetry
+            telemetry.update(); // Update all telemety
 /*
         }
     }
