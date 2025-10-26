@@ -246,8 +246,8 @@ public class LinearTeleOp extends LinearOpMode {
             }
 
             if (gamepad2.right_bumper) {
-                outTakeMotorLeftPower = 0.6;
-                outTakeMotorRightPower = 0.6;
+                outTakeMotorLeftPower = 0.7;
+                outTakeMotorRightPower = 0.7;
             } else {
                 outTakeMotorLeftPower = 0;
                 outTakeMotorRightPower = 0;
@@ -256,9 +256,9 @@ public class LinearTeleOp extends LinearOpMode {
             yaw2 = yaw2 / 1.5;
 
             // Send calculated power to non-drive motors
-            HW.intakeMotor.setPower(intakeMotorPower + 0.2);
-            HW.outTakeMotorLeft.setPower(outTakeMotorLeftPower + 0.2);
-            HW.outTakeMotorRight.setPower(outTakeMotorRightPower + 0.2);
+            HW.intakeMotor.setPower(intakeMotorPower + 0.1);
+            HW.outTakeMotorLeft.setPower(outTakeMotorLeftPower + 0.1);
+            HW.outTakeMotorRight.setPower(outTakeMotorRightPower + 0.1);
 
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
