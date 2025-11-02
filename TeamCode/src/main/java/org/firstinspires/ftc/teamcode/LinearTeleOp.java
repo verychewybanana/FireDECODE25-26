@@ -62,6 +62,12 @@ public class LinearTeleOp extends LinearOpMode {
     public final double backRightMultiplier = 1.1;
     public boolean isStrafing = false;
 
+    // Variable to track the motor's ON/OFF state
+    boolean isOuttakeOn = false;
+
+    // Variable to track the *previous* state of the button for edge detection
+    boolean wasBumperPressed = false;
+
     @Override
 
     public void runOpMode() {
@@ -241,14 +247,32 @@ public class LinearTeleOp extends LinearOpMode {
 
             if (gamepad2.left_bumper) {
                 intakeMotorPower = 0.6;
-            } else {
-                intakeMotorPower = 0.0;
+            } else if (gamepad2.left_trigger > 0) {
+                intakeMotorPower = -0.3;
+            }
+            else {
+                intakeMotorPower = 0;
             }
 
-            if (gamepad2.right_bumper) {
+            // Get the current state of the bumper
+            boolean isBumperPressed = gamepad2.right_bumper;
+
+            // Check if the button was *just* pressed (i.e., it is pressed now, but wasn't last loop)
+            if (isBumperPressed && !wasBumperPressed) {
+                // Toggle the state: if it was true, make it false; if it was false, make it true
+                isOuttakeOn = !isOuttakeOn;
+            }
+
+            // IMPORTANT: Update the 'was' variable for the *next* loop iteration
+            wasBumperPressed = isBumperPressed;
+
+            // --- Now, set your motor power based on the toggle state ---
+            if (isOuttakeOn) {
+                // The state is ON, so set power
                 outTakeMotorLeftPower = 0.7;
                 outTakeMotorRightPower = 0.7;
             } else {
+                // The state is OFF, so set power to zero
                 outTakeMotorLeftPower = 0;
                 outTakeMotorRightPower = 0;
             }
@@ -256,9 +280,9 @@ public class LinearTeleOp extends LinearOpMode {
             yaw2 = yaw2 / 1.5;
 
             // Send calculated power to non-drive motors
-            HW.intakeMotor.setPower(intakeMotorPower + 0.1);
-            HW.outTakeMotorLeft.setPower(outTakeMotorLeftPower + 0.1);
-            HW.outTakeMotorRight.setPower(outTakeMotorRightPower + 0.1);
+            HW.intakeMotor.setPower(intakeMotorPower);
+            HW.outTakeMotorLeft.setPower(outTakeMotorLeftPower);
+            HW.outTakeMotorRight.setPower(outTakeMotorRightPower);
 
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
