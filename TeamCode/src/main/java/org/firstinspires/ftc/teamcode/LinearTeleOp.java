@@ -5,10 +5,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 // --- AUTO-AIM IMPORTS START ---
-//import android.util.Size;
-//import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-//import org.firstinspires.ftc.teamcode.ColorSensing.GreenPurpleProcessor;
-//import org.firstinspires.ftc.vision.VisionPortal;
+import android.util.Size;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.ColorSensing.GreenPurpleProcessor;
+import org.firstinspires.ftc.vision.VisionPortal;
 // --- AUTO-AIM IMPORTS END ---
 
 /**
@@ -24,14 +24,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class LinearTeleOp extends LinearOpMode {
 
     // --- AUTO-AIM VARIABLES START ---
-//    private VisionPortal visionPortal;
-//    private GreenPurpleProcessor greenPurpleProcessor; // Your pipeline class
-//
-//    // You MUST tune these values
-//    private static final int CAMERA_WIDTH = 160;
-//    private static final int CENTER_X = CAMERA_WIDTH / 2;
-//    private static final double PIXEL_TOLERANCE = 20;
-//    private static final double TURN_POWER = 0.3; // Power for auto-aiming
+    private VisionPortal visionPortal;
+    private GreenPurpleProcessor greenPurpleProcessor; // Your pipeline class
+
+    // You MUST tune these values
+    private static final int CAMERA_WIDTH = 640; // I changed this back to 640 (standard), 160 is very small
+    private static final int CENTER_X = CAMERA_WIDTH / 2;
+    private static final double PIXEL_TOLERANCE = 20;
+    private static final double TURN_POWER = 0.3; // Power for auto-aiming
     // --- AUTO-AIM VARIABLES END ---
 
 
@@ -93,13 +93,14 @@ public class LinearTeleOp extends LinearOpMode {
         telemetry = dashboard.getTelemetry();
 
         // --- AUTO-AIM INITIALIZATION START ---
-//        greenPurpleProcessor = new GreenPurpleProcessor();
-//        visionPortal = new VisionPortal.Builder()
-//                .setCamera(this.hardwareMap.get(WebcamName.class, "Webcam 1")) // "Webcam 1" must match your config
-//                .setCameraResolution(new Size(CAMERA_WIDTH, 120))
-//                .addProcessor(greenPurpleProcessor)
-//                .enableLiveView(true) // Show stream on Driver Station
-//                .build();
+        greenPurpleProcessor = new GreenPurpleProcessor();
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(this.hardwareMap.get(WebcamName.class, "Webcam 1")) // "Webcam 1" must match your config
+                .setCameraResolution(new Size(CAMERA_WIDTH, 480)) // Standard resolution
+                .setStreamFormat(VisionPortal.StreamFormat.MJPEG) // Added MJPEG for speed!
+                .addProcessor(greenPurpleProcessor)
+                .enableLiveView(true) // Show stream on Driver Station
+                .build();
         // --- AUTO-AIM INITIALIZATION END ---
 
 
@@ -117,146 +118,112 @@ public class LinearTeleOp extends LinearOpMode {
             double i = 0.0;
             int hook = 0;
 
-            double GRB = 0;
-            // 0 = white 702, 631, 628
-            // 1 = Green 210, 120,170
-            //2 = Purple 290, 287, 360
-            // 3 = Yellow 248, 308, 146
-
-            /*
-            if (HW.color.green() <= 752 && HW.color.green()>=562 && HW.color.red() <= 681 && HW.color.red() >= 581 && HW.color.blue()<=678 && HW.color.blue()>=578 ){
-                HW.led.setPattern(RevBlinkinLedDriver.BlinkinPattern.WHITE);
-            } if (HW.color.green() <= 260 && HW.color.green()>=160 && HW.color.red() <= 170 && HW.color.red() >= 70 && HW.color.blue()<=170 && HW.color.blue()>=70) {
-                HW.led.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
-            }
-            if (HW.color.green() <= 340 && HW.color.green()>=240 && HW.color.red() <= 340 && HW.color.red() >= 240 && HW.color.blue()<=410 && HW.color.blue()>=310 ){
-                HW.led.setPattern(RevBlinkinLedDriver.BlinkinPattern.VIOLET);
-            }
-            if (HW.color.green() <= 298 && HW.color.green()>=198 && HW.color.red() <= 358 && HW.color.red() >= 258 && HW.color.blue()<=196 && HW.color.blue()>=96 ){
-                HW.led.setPattern(RevBlinkinLedDriver.BlinkinPattern.YELLOW);
-            }
-*/
-
             // --- AUTO-AIM LOGIC START ---
             // Check if the auto-aim button (e.g., 'A' on gamepad1) is being HELD down
-//            if (gamepad1.a) {
-//                // --- 1. AUTO-AIM LOGIC ---
-//                int currentTargetX = greenPurpleProcessor.getTargetX();
-//
-//                if (currentTargetX == -1) {
-//                    // No object found. Stop the robot.
-//                    HW.frontLeftMotor.setPower(0);
-//                    HW.frontRightMotor.setPower(0);
-//                    HW.backLeftMotor.setPower(0);
-//                    HW.backRightMotor.setPower(0);
-//                    telemetry.addData("Mode", "Auto-Aim: No Target");
-//
-//                } else {
-//                    // Object is found. Calculate the error.
-//                    double error = currentTargetX - CENTER_X;
-//
-//                    telemetry.addData("Mode", "Auto-Aim: Target Acquired!");
-//                    telemetry.addData("Target X", currentTargetX);
-//                    telemetry.addData("Error", error);
-//
-//                    // Check if we are already centered
-//                    if (Math.abs(error) <= PIXEL_TOLERANCE) {
-//                        // We are centered. Stop spinning.
-//                        HW.frontLeftMotor.setPower(0);
-//                        HW.frontRightMotor.setPower(0);
-//                        HW.backLeftMotor.setPower(0);
-//                        HW.backRightMotor.setPower(0);
-//
-//                    } else {
-//                        // We need to spin.
-//                        // This logic respects your mecanum yaw calculations
-//                        if (error > 0) {
-//                            // Spin Right (positive yaw)
-//                            telemetry.addData("Action", "Spinning Right");
-//                            HW.frontLeftMotor.setPower(TURN_POWER);
-//                            HW.frontRightMotor.setPower(-TURN_POWER);
-//                            HW.backLeftMotor.setPower(TURN_POWER);
-//                            HW.backRightMotor.setPower(-TURN_POWER);
-//                        } else {
-//                            // Spin Left (negative yaw)
-//                            telemetry.addData("Action", "Spinning Left");
-//                            HW.frontLeftMotor.setPower(-TURN_POWER);
-//                            HW.frontRightMotor.setPower(TURN_POWER);
-//                            HW.backLeftMotor.setPower(-TURN_POWER);
-//                            HW.backRightMotor.setPower(TURN_POWER);
-//                        }
-//                    }
-//                }
-//
-//            } else {
-            // --- 2. MANUAL DRIVE LOGIC (Your Original Code) ---
-            // This runs when 'A' is NOT pressed
+            if (gamepad1.a) {
+                // --- 1. AUTO-AIM LOGIC ---
+                int currentTargetX = greenPurpleProcessor.getTargetX();
 
-            // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            // --- MODIFIED FOR INVERTED CONTROLS ---
-            // Pushing stick forward (negative) now maps to chassis-backward power (negative)
+                if (currentTargetX == -1) {
+                    // No object found. Stop the robot.
+                    HW.frontLeftMotor.setPower(0);
+                    HW.frontRightMotor.setPower(0);
+                    HW.backLeftMotor.setPower(0);
+                    HW.backRightMotor.setPower(0);
+                    telemetry.addData("Mode", "Auto-Aim: No Target");
 
-            // We flip the y-axis value to invert front/back controls
-            double axial = -gamepad1.left_stick_y;
+                } else {
+                    // Object is found. Calculate the error.
+                    double error = currentTargetX - CENTER_X;
 
-            // Pushing stick right (positive) now maps to chassis-left power (negative)
-            double lateral = -gamepad1.left_stick_x * 1.1;
-            // Yaw (rotation) remains the same
-            double yaw = gamepad1.right_stick_x;
+                    telemetry.addData("Mode", "Auto-Aim: Target Acquired!");
+                    telemetry.addData("Target X", currentTargetX);
+                    telemetry.addData("Error", error);
 
-//            if (lateral >= 0.5) isStrafing = true;
+                    // Check if we are already centered
+                    if (Math.abs(error) <= PIXEL_TOLERANCE) {
+                        // We are centered. Stop spinning.
+                        HW.frontLeftMotor.setPower(0);
+                        HW.frontRightMotor.setPower(0);
+                        HW.backLeftMotor.setPower(0);
+                        HW.backRightMotor.setPower(0);
 
+                    } else {
+                        // We need to spin.
+                        if (error > 0) {
+                            // Spin Right (positive yaw)
+                            telemetry.addData("Action", "Spinning Right");
+                            HW.frontLeftMotor.setPower(TURN_POWER);
+                            HW.frontRightMotor.setPower(-TURN_POWER);
+                            HW.backLeftMotor.setPower(TURN_POWER);
+                            HW.backRightMotor.setPower(-TURN_POWER);
+                        } else {
+                            // Spin Left (negative yaw)
+                            telemetry.addData("Action", "Spinning Left");
+                            HW.frontLeftMotor.setPower(-TURN_POWER);
+                            HW.frontRightMotor.setPower(TURN_POWER);
+                            HW.backLeftMotor.setPower(-TURN_POWER);
+                            HW.backRightMotor.setPower(TURN_POWER);
+                        }
+                    }
+                }
 
-            double axial2 = -gamepad2.left_stick_y;
-//            double lateral2 =  gamepad2.left_stick_x * 1.1;
-            double yaw2 = gamepad2.right_stick_x;
-
-
-            // Combine the joystick requests for each axis-motion to determine each wheel's power.
-            // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower = axial + lateral + yaw;
-            double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower = axial - lateral + yaw;
-            double rightBackPower = axial + lateral - yaw;
-
-
-            // Normalize the values so no wheel power exceeds 100%
-            // This ensures that the robot maintains the desired motion.
-            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
-            max = Math.max(max, Math.abs(leftBackPower));
-            max = Math.max(max, Math.abs(rightBackPower));
-            i = gamepad1.right_trigger;
-            if (max > 1) {
-                leftFrontPower /= max;
-                rightFrontPower /= max;
-                leftBackPower /= max;
-                rightBackPower /= max;
-//                axial2 /=max;
-                i /= max;
-//                (lateral2)/=max;
-                yaw2 /= max;
-            }
-
-            if (gamepad1.right_bumper) {
-                i = i;
             } else {
-                leftFrontPower /= 2;
-                rightFrontPower /= 2;
-                leftBackPower /= 2;
-                rightBackPower /= 2;
+                // --- 2. MANUAL DRIVE LOGIC ---
+                // This runs when 'A' is NOT pressed
+
+                // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
+                // We flip the y-axis value to invert front/back controls
+                double axial = -gamepad1.left_stick_y;
+
+                // Pushing stick right (positive) now maps to chassis-left power (negative)
+                double lateral = -gamepad1.left_stick_x * 1.1;
+                // Yaw (rotation) remains the same
+                double yaw = gamepad1.right_stick_x;
+
+                double axial2 = -gamepad2.left_stick_y;
+                double yaw2 = gamepad2.right_stick_x;
+
+                // Combine the joystick requests for each axis-motion to determine each wheel's power.
+                double leftFrontPower = axial + lateral + yaw;
+                double rightFrontPower = axial - lateral - yaw;
+                double leftBackPower = axial - lateral + yaw;
+                double rightBackPower = axial + lateral - yaw;
+
+                // Normalize the values so no wheel power exceeds 100%
+                max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+                max = Math.max(max, Math.abs(leftBackPower));
+                max = Math.max(max, Math.abs(rightBackPower));
+                i = gamepad1.right_trigger;
+                if (max > 1) {
+                    leftFrontPower /= max;
+                    rightFrontPower /= max;
+                    leftBackPower /= max;
+                    rightBackPower /= max;
+                    i /= max;
+                    yaw2 /= max;
+                }
+
+                if (gamepad1.right_bumper) {
+                    i = i;
+                } else {
+                    leftFrontPower /= 2;
+                    rightFrontPower /= 2;
+                    leftBackPower /= 2;
+                    rightBackPower /= 2;
+                }
+
+                // Send calculated power to wheels
+                HW.frontLeftMotor.setPower(leftFrontPower);
+                HW.frontRightMotor.setPower(rightFrontPower);
+                HW.backLeftMotor.setPower(leftBackPower);
+                HW.backRightMotor.setPower(rightBackPower);
+
+                // Add telemetry data for manual mode
+                telemetry.addData("Mode", "Manual Control");
+                telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
+                telemetry.addData("Back left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             }
-
-            // Send calculated power to wheels
-            HW.frontLeftMotor.setPower(leftFrontPower);
-            HW.frontRightMotor.setPower(rightFrontPower);
-            HW.backLeftMotor.setPower(leftBackPower);
-            HW.backRightMotor.setPower(rightBackPower);
-
-            // Add telemetry data for manual mode
-            telemetry.addData("Mode", "Manual Control");
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
-            telemetry.addData("Back left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-//            }
             // --- AUTO-AIM LOGIC END ---
 
 
@@ -266,12 +233,12 @@ public class LinearTeleOp extends LinearOpMode {
             double outTakeMotorLeftPower;
             double outTakeMotorRightPower;
 
-            yaw2 = gamepad2.right_stick_x; // This line was in your original code
+            double yaw2 = gamepad2.right_stick_x;
 
             if (gamepad2.left_bumper) {
-                intakeMotorPower = 0.4;
+                intakeMotorPower = 0.25;
             } else if (gamepad2.right_bumper) {
-                intakeMotorPower = 0.8;
+                intakeMotorPower = 0.5;
             }
             else if (gamepad2.right_trigger > 0) {
                 intakeMotorPower = -0.4;
@@ -291,10 +258,6 @@ public class LinearTeleOp extends LinearOpMode {
             boolean isGamepad2Y_Pressed = gamepad2.y;
 
             // 2. Check for new presses (edge detection) and set power
-            // This logic checks if the button is newly pressed.
-            // If the power is ALREADY at this button's level, it turns it off.
-            // Otherwise, it sets the power to this button's level.
-
             if (isGamepad2A_Pressed && !wasGamepad2A_Pressed) {
                 // A was just pressed
                 if (currentOuttakePower == OUTTAKE_POWER_A) {
@@ -353,24 +316,12 @@ public class LinearTeleOp extends LinearOpMode {
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
 
-
-            /*
-            telemetry.addData("LED GREEN", HW.color.green());
-            telemetry.addData("LED red", HW.color.red());
-            telemetry.addData("LED blue", HW.color.blue());
-            telemetry.addData("LED ARGB", HW.color.argb());
-*/
-            telemetry.update(); // Update all telemety
-/*
-        }
-    }
-}
-*/
+            telemetry.update(); // Update all telemetry
         }
 
         // --- AUTO-AIM CLEANUP START ---
         // This runs once after the OpMode is stopped
-//        visionPortal.close();
+        visionPortal.close();
         // --- AUTO-AIM CLEANUP END ---
     }
 }
