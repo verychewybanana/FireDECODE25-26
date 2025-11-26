@@ -21,13 +21,13 @@ public class GreenPurpleProcessor implements VisionProcessor {
 
     // --- HSV Color Ranges ---
     // Start with these "wide" values for Green, then tune them down.
-    public static Scalar GREEN_LOWER = new Scalar(0, 0, 0);  // 0, 93, 83
+    public static Scalar GREEN_LOWER = new Scalar(0, 93, 83);  // 0, 93, 83
     public static Scalar GREEN_UPPER = new Scalar(255, 255, 255);  // 105, 208, 194
 
 
     // Keep Purple separate for now
-    public static Scalar PURPLE_LOWER = new Scalar(125, 50, 50);
-    public static Scalar PURPLE_UPPER = new Scalar(160, 255, 255);
+    public static Scalar PURPLE_LOWER = new Scalar(142, 74, 135);
+    public static Scalar PURPLE_UPPER = new Scalar(226, 179, 218);
 
     // --- Image Processing Mats ---
     private Mat hsvMat = new Mat();
@@ -59,8 +59,8 @@ public class GreenPurpleProcessor implements VisionProcessor {
 
         greenMask.copyTo(combinedMask);
 
-        // Core.inRange(hsvMat, PURPLE_LOWER, PURPLE_UPPER, purpleMask);
-        // Core.add(greenMask, purpleMask, combinedMask); // Use this when doing BOTH colors
+         Core.inRange(hsvMat, PURPLE_LOWER, PURPLE_UPPER, purpleMask);
+         Core.add(greenMask, purpleMask, combinedMask); // Use this when doing BOTH colors
 
         // 3. Clean up the mask
         Imgproc.erode(combinedMask, combinedMask, new Mat(), new Point(-1, -1), 2);

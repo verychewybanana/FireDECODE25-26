@@ -1,83 +1,273 @@
 package org.firstinspires.ftc.teamcode;
-
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name="New", group="Diagnostic")
+/**
+ *
+ * 1) Axial:    Driving forward and backward               Left-joystick Forward/Backward
+ * 2) Lateral:  Strafing right and left                     Left-joystick Right and Left
+ * 3) Yaw:      Rotating Clockwise and counter clockwise    Right-joystick Right and Left
+ *
+ **/
+
+
+@TeleOp(name="New TeleOp", group="Linear Opmode")
 public class New extends LinearOpMode {
-    private DcMotor frontLeftMotor;
-    private DcMotor frontRightMotor;
-    private DcMotor backLeftMotor;
-    private DcMotor backRightMotor;
+
+    /*
+    Controls for gamepad2
+    Dpad down - lower slides
+    Dpad up - raise slides to high level
+    Dpad right - raise slides to mid level
+    Y - open door
+    B - close door
+    A - tilt box to scoring position
+    X - return box to 0
+    Left bumper - toggle separator
+    Right bumper - toggle hook servo up or down
+    Left joystick y - spin intake wheels
+    Right joystick x - actuator motor
+*/
+
+
+    //ServoImplEx servo;
+    //PwmControl.PwmRange range = new PwmControl.PwmRange(533,2425);
+    // Declare OpMode members for each of the 4 motors.
+    private ElapsedTime runtime = new ElapsedTime();
+    private FireHardwareMap HW = null;
+
+    public final double leftRightServoSpeed = 0.01;
+    public final double backRightMultiplier = 1.1;
+    public boolean isStrafing = false;
+
+    // Variable to track the motor's ON/OFF state
+    boolean isOuttakeOn = false;
+
+    // Variable to track the *previous* state of the button for edge detection
+    boolean wasBumperPressed = false;
+
+    // --- NEW OUTTAKE POWER VARIABLES ---
+    // Feel free to tune these power levels
+    public final double OUTTAKE_POWER_A = 0.25; // Low power
+    public final double OUTTAKE_POWER_B = 0.7; // Medium-low power
+    public final double OUTTAKE_POWER_X = 0.35; // Medium-high power
+    public final double OUTTAKE_POWER_Y = 0.57;  // Full power (from your original code)
+
+    private double currentOuttakePower = 0.0; // Tracks the current power state
+
+    // Variables to track *previous* button states for edge detection
+    boolean wasGamepad2A_Pressed = false;
+    boolean wasGamepad2B_Pressed = false;
+    boolean wasGamepad2X_Pressed = false;
+    boolean wasGamepad2Y_Pressed = false;
+    // --- END NEW OUTTAKE POWER VARIABLES ---
 
     @Override
+
     public void runOpMode() {
-        // --- DEFINE MOTORS ---
-        // These names MUST match your Driver Hub configuration
-        frontLeftMotor = hardwareMap.get(DcMotor.class, "frontLeftMotor");
-        frontRightMotor = hardwareMap.get(DcMotor.class, "frontRightMotor");
-        backLeftMotor = hardwareMap.get(DcMotor.class, "backLeftMotor");
-        backRightMotor = hardwareMap.get(DcMotor.class, "backRightMotor");
+        HW = new FireHardwareMap(this.hardwareMap);
 
-        frontRightMotor.setDirection(DcMotor.Direction.FORWARD);
-        frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
-        backRightMotor.setDirection(DcMotor.Direction.FORWARD);
-        backLeftMotor.setDirection(DcMotor.Direction.REVERSE);
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+        telemetry = dashboard.getTelemetry();
 
-
-        telemetry.addLine("--- MOTOR TEST ---");
-        telemetry.addLine("Robot MUST be on blocks");
-        telemetry.addLine("Press buttons to test motors ONE AT A TIME.");
-        telemetry.addLine("All wheels should spin FORWARD.");
-        telemetry.addLine("--------------------");
-        telemetry.addLine("X = Front Left");
-        telemetry.addLine("Y = Front Right");
-        telemetry.addLine("A = Back Left");
-        telemetry.addLine("B = Back Right");
+        // Wait for the game to start (driver presses PLAY)
+        telemetry.addData("Status", "Initialized");
+        telemetry.addData("Last updated: ", "");
         telemetry.update();
 
         waitForStart();
+        runtime.reset();
 
+        // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            double testPower = 0.4;
+            double max;
+            double i = 0.0;
+            int hook = 0;
 
-            // Test Front Left
-            if (gamepad1.x) {
-                frontLeftMotor.setPower(testPower);
-                telemetry.addData("Testing", "FRONT LEFT (X)");
+            // --- 2. MANUAL DRIVE LOGIC ---
+            // This runs all the time now
+
+            // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
+            // We flip the y-axis value to invert front/back controls
+            double axial = -gamepad1.left_stick_y;
+
+            // Pushing stick right (positive) now maps to chassis-left power (negative)
+            double lateral = -gamepad1.left_stick_x * 1.1;
+            // Yaw (rotation) remains the same
+            double yaw = gamepad1.right_stick_x;
+
+            double axial2 = -gamepad2.left_stick_y;
+            double yaw2 = gamepad2.right_stick_x;
+
+            // Combine the joystick requests for each axis-motion to determine each wheel's power.
+            double leftFrontPower = axial + lateral + yaw;
+            double rightFrontPower = axial - lateral - yaw;
+            double leftBackPower = axial - lateral + yaw;
+            double rightBackPower = axial + lateral - yaw;
+
+            // Normalize the values so no wheel power exceeds 100%
+            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+            max = Math.max(max, Math.abs(leftBackPower));
+            max = Math.max(max, Math.abs(rightBackPower));
+            i = gamepad1.right_trigger;
+            if (max > 1) {
+                leftFrontPower /= max;
+                rightFrontPower /= max;
+                leftBackPower /= max;
+                rightBackPower /= max;
+                i /= max;
+                yaw2 /= max;
+            }
+
+            if (gamepad1.right_bumper) {
+                i = i;
             } else {
-                frontLeftMotor.setPower(0);
+                leftFrontPower /= 2;
+                rightFrontPower /= 2;
+                leftBackPower /= 2;
+                rightBackPower /= 2;
             }
 
-            // Test Front Right
-            if (gamepad1.y) {
-                frontRightMotor.setPower(testPower);
-                telemetry.addData("Testing", "FRONT RIGHT (Y)");
+            // Send calculated power to wheels
+            HW.frontLeftMotor.setPower(leftFrontPower);
+            HW.frontRightMotor.setPower(rightFrontPower);
+            HW.backLeftMotor.setPower(leftBackPower);
+            HW.backRightMotor.setPower(rightBackPower);
+
+            // Add telemetry data for manual mode
+            telemetry.addData("Mode", "Manual Control");
+            telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
+            telemetry.addData("Back left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+
+
+            // --- Your other logic (intake, etc.) ---
+            // This code is outside the if/else, so it runs all the time
+            double intakeMotorPower;
+            double outTakeMotorLeftPower;
+            double outTakeMotorRightPower;
+            double outTake1Power;
+            double outTake2Power;
+            double outTake3Power;
+
+            yaw2 = gamepad2.right_stick_x;
+            // x = outake 1
+            // y = outake 2
+            // a = outake 3
+            // b = all of them at once
+
+            if (gamepad2.x)
+                outTake1Power = 0.8;
+            else
+                outTake1Power = 0;
+
+            if (gamepad2.y)
+                outTake2Power = 0.8;
+            else
+                outTake2Power = 0;
+
+            if (gamepad2.a)
+                outTake3Power = 0.8;
+            else
+                outTake3Power = 0;
+
+            if (gamepad2.b) {
+                outTake1Power = 0.8;
+                outTake2Power = 0.8;
+                outTake3Power = 0.8;
             } else {
-                frontRightMotor.setPower(0);
+                outTake1Power = 0;
+                outTake2Power = 0;
+                outTake3Power = 0;
             }
 
-            // Test Back Left
-            if (gamepad1.a) {
-                backLeftMotor.setPower(testPower);
-                telemetry.addData("Testing", "BACK LEFT (A)");
-            } else {
-                backLeftMotor.setPower(0);
+            if (gamepad2.left_bumper) {
+                intakeMotorPower = 0.25;
+            } else if (gamepad2.right_bumper) {
+                intakeMotorPower = 0.5;
+            }
+            else if (gamepad2.right_trigger > 0) {
+                intakeMotorPower = -0.4;
+            } else if (gamepad2.left_trigger > 0) {
+                intakeMotorPower = -0.2;
+            }
+            else {
+                intakeMotorPower = 0;
             }
 
-            // Test Back Right
-            if (gamepad1.b) {
-                backRightMotor.setPower(testPower);
-                telemetry.addData("Testing", "BACK RIGHT (B)");
-            } else {
-                backRightMotor.setPower(0);
+            // --- New Outtake Logic with 4-Button Toggle ---
+
+            // 1. Get current button states from gamepad2
+            boolean isGamepad2A_Pressed = gamepad2.a;
+            boolean isGamepad2B_Pressed = gamepad2.b;
+            boolean isGamepad2X_Pressed = gamepad2.x;
+            boolean isGamepad2Y_Pressed = gamepad2.y;
+
+            // 2. Check for new presses (edge detection) and set power
+            if (isGamepad2A_Pressed && !wasGamepad2A_Pressed) {
+                // A was just pressed
+                if (currentOuttakePower == OUTTAKE_POWER_A) {
+                    currentOuttakePower = 0.0; // Toggle off
+                } else {
+                    currentOuttakePower = OUTTAKE_POWER_A; // Set to A's power
+                }
             }
 
-            if(!gamepad1.x && !gamepad1.y && !gamepad1.a && !gamepad1.b) {
-                telemetry.addData("Testing", "None");
+            if (isGamepad2B_Pressed && !wasGamepad2B_Pressed) {
+                // B was just pressed
+                if (currentOuttakePower == OUTTAKE_POWER_B) {
+                    currentOuttakePower = 0.0; // Toggle off
+                } else {
+                    currentOuttakePower = OUTTAKE_POWER_B; // Set to B's power
+                }
             }
-            telemetry.update();
+
+            if (isGamepad2X_Pressed && !wasGamepad2X_Pressed) {
+                // X was just pressed
+                if (currentOuttakePower == OUTTAKE_POWER_X) {
+                    currentOuttakePower = 0.0; // Toggle off
+                } else {
+                    currentOuttakePower = OUTTAKE_POWER_X; // Set to X's power
+                }
+            }
+
+            if (isGamepad2Y_Pressed && !wasGamepad2Y_Pressed) {
+                // Y was just pressed
+                if (currentOuttakePower == OUTTAKE_POWER_Y) {
+                    currentOuttakePower = 0.0; // Toggle off
+                } else {
+                    currentOuttakePower = OUTTAKE_POWER_Y; // Set to Y's power
+                }
+            }
+
+            // 3. Update "wasPressed" variables for the next loop
+            wasGamepad2A_Pressed = isGamepad2A_Pressed;
+            wasGamepad2B_Pressed = isGamepad2B_Pressed;
+            wasGamepad2X_Pressed = isGamepad2X_Pressed;
+            wasGamepad2Y_Pressed = isGamepad2Y_Pressed;
+
+            // 4. Set motor power based on the current state
+            outTakeMotorLeftPower = currentOuttakePower;
+            outTakeMotorRightPower = currentOuttakePower;
+
+
+            // --- End of New Outtake Logic ---
+
+            yaw2 = yaw2 / 1.5;
+
+            // Send calculated power to non-drive motors
+            HW.intakeMotor.setPower(intakeMotorPower);
+            HW.outTakeMotorLeft.setPower(outTakeMotorLeftPower);
+            HW.outTakeMotorRight.setPower(outTakeMotorRightPower);
+            HW.outTake1.setPower(outTake1Power) ;
+            HW.outTake2.setPower(outTake2Power);
+            HW.outTake3.setPower(outTake3Power);
+
+            // Show the elapsed game time
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+
+            telemetry.update(); // Update all telemetry
         }
     }
 }

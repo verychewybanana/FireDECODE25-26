@@ -32,18 +32,7 @@ public class VisionTuningOpMode extends LinearOpMode {
             // Keep the OpMode running
             telemetry.addData("I am", "running.");
 
-            // Get the color of the center pixel
-            double[] pixel = greenPurpleProcessor.getCenterPixelColor();
-
-            if (pixel != null) {
-                telemetry.addData("-", "--- COLOR PICKER ---");
-                telemetry.addData("POINT CAMERA AT", "YOUR OBJECT");
-                telemetry.addData("H (Color)", "%.0f", pixel[0]);
-                telemetry.addData("S (Sat)",   "%.0f", pixel[1]);
-                telemetry.addData("V (Value)", "%.0f", pixel[2]);
-                telemetry.addData("-", "--------------------");
             }
             telemetry.update();
         }
     }
-}
