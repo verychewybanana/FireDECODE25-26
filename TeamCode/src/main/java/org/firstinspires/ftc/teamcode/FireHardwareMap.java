@@ -15,7 +15,7 @@ public class FireHardwareMap {
     public DcMotor backRightMotor = null;
     public DcMotor backLeftMotor = null;
     public DcMotor intakeMotor = null;
-    public DcMotor outTake1 = null;
+    public DcMotor outTake1 = null;     //12/13
     public DcMotor outTake2 = null;
     public BNO055IMU imu;
     public RevBlinkinLedDriver led;
