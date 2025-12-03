@@ -169,9 +169,6 @@ public class AutomatedTeleOp extends LinearOpMode {
             wasGamepad2X = gamepad2.x;
             wasGamepad2Y = gamepad2.y;
 
-            // Apply Outtake Power
-            HW.outTakeMotorLeft.setPower(currentOuttakePower);
-            HW.outTakeMotorRight.setPower(currentOuttakePower);
 
             telemetry.addData("Target Area", "%.0f", targetArea);
             telemetry.addData("Shooter Power", "%.2f", currentOuttakePower);

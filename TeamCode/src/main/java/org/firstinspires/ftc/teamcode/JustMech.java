@@ -149,8 +149,7 @@ public class JustMech extends LinearOpMode {
 
             // Send calculated power to the motors
             HW.intakeMotor.setPower(intakeMotorPower);
-            HW.outTakeMotorLeft.setPower(outTakeMotorLeftPower);
-            HW.outTakeMotorRight.setPower(outTakeMotorRightPower);
+            
 
             // Show telemetry
             telemetry.addData("Intake Power", intakeMotorPower);

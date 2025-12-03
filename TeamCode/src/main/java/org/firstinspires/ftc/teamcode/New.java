@@ -42,28 +42,6 @@ public class New extends LinearOpMode {
     public final double backRightMultiplier = 1.1;
     public boolean isStrafing = false;
 
-    // Variable to track the motor's ON/OFF state
-    boolean isOuttakeOn = false;
-
-    // Variable to track the *previous* state of the button for edge detection
-    boolean wasBumperPressed = false;
-
-    // --- NEW OUTTAKE POWER VARIABLES ---
-    // Feel free to tune these power levels
-    public final double OUTTAKE_POWER_A = 0.25; // Low power
-    public final double OUTTAKE_POWER_B = 0.7; // Medium-low power
-    public final double OUTTAKE_POWER_X = 0.35; // Medium-high power
-    public final double OUTTAKE_POWER_Y = 0.57;  // Full power (from your original code)
-
-    private double currentOuttakePower = 0.0; // Tracks the current power state
-
-    // Variables to track *previous* button states for edge detection
-    boolean wasGamepad2A_Pressed = false;
-    boolean wasGamepad2B_Pressed = false;
-    boolean wasGamepad2X_Pressed = false;
-    boolean wasGamepad2Y_Pressed = false;
-    // --- END NEW OUTTAKE POWER VARIABLES ---
-
     @Override
 
     public void runOpMode() {
@@ -145,11 +123,8 @@ public class New extends LinearOpMode {
             // --- Your other logic (intake, etc.) ---
             // This code is outside the if/else, so it runs all the time
             double intakeMotorPower;
-            double outTakeMotorLeftPower;
-            double outTakeMotorRightPower;
             double outTake1Power;
             double outTake2Power;
-            double outTake3Power;
 
             yaw2 = gamepad2.right_stick_x;
             // x = outake 1
@@ -167,19 +142,12 @@ public class New extends LinearOpMode {
             else
                 outTake2Power = 0;
 
-            if (gamepad2.a)
-                outTake3Power = 0.8;
-            else
-                outTake3Power = 0;
-
             if (gamepad2.b) {
                 outTake1Power = 0.8;
                 outTake2Power = 0.8;
-                outTake3Power = 0.8;
             } else {
                 outTake1Power = 0;
                 outTake2Power = 0;
-                outTake3Power = 0;
             }
 
             if (gamepad2.left_bumper) {
@@ -196,73 +164,13 @@ public class New extends LinearOpMode {
                 intakeMotorPower = 0;
             }
 
-            // --- New Outtake Logic with 4-Button Toggle ---
-
-            // 1. Get current button states from gamepad2
-            boolean isGamepad2A_Pressed = gamepad2.a;
-            boolean isGamepad2B_Pressed = gamepad2.b;
-            boolean isGamepad2X_Pressed = gamepad2.x;
-            boolean isGamepad2Y_Pressed = gamepad2.y;
-
-            // 2. Check for new presses (edge detection) and set power
-            if (isGamepad2A_Pressed && !wasGamepad2A_Pressed) {
-                // A was just pressed
-                if (currentOuttakePower == OUTTAKE_POWER_A) {
-                    currentOuttakePower = 0.0; // Toggle off
-                } else {
-                    currentOuttakePower = OUTTAKE_POWER_A; // Set to A's power
-                }
-            }
-
-            if (isGamepad2B_Pressed && !wasGamepad2B_Pressed) {
-                // B was just pressed
-                if (currentOuttakePower == OUTTAKE_POWER_B) {
-                    currentOuttakePower = 0.0; // Toggle off
-                } else {
-                    currentOuttakePower = OUTTAKE_POWER_B; // Set to B's power
-                }
-            }
-
-            if (isGamepad2X_Pressed && !wasGamepad2X_Pressed) {
-                // X was just pressed
-                if (currentOuttakePower == OUTTAKE_POWER_X) {
-                    currentOuttakePower = 0.0; // Toggle off
-                } else {
-                    currentOuttakePower = OUTTAKE_POWER_X; // Set to X's power
-                }
-            }
-
-            if (isGamepad2Y_Pressed && !wasGamepad2Y_Pressed) {
-                // Y was just pressed
-                if (currentOuttakePower == OUTTAKE_POWER_Y) {
-                    currentOuttakePower = 0.0; // Toggle off
-                } else {
-                    currentOuttakePower = OUTTAKE_POWER_Y; // Set to Y's power
-                }
-            }
-
-            // 3. Update "wasPressed" variables for the next loop
-            wasGamepad2A_Pressed = isGamepad2A_Pressed;
-            wasGamepad2B_Pressed = isGamepad2B_Pressed;
-            wasGamepad2X_Pressed = isGamepad2X_Pressed;
-            wasGamepad2Y_Pressed = isGamepad2Y_Pressed;
-
-            // 4. Set motor power based on the current state
-            outTakeMotorLeftPower = currentOuttakePower;
-            outTakeMotorRightPower = currentOuttakePower;
-
-
-            // --- End of New Outtake Logic ---
 
             yaw2 = yaw2 / 1.5;
 
             // Send calculated power to non-drive motors
             HW.intakeMotor.setPower(intakeMotorPower);
-            HW.outTakeMotorLeft.setPower(outTakeMotorLeftPower);
-            HW.outTakeMotorRight.setPower(outTakeMotorRightPower);
             HW.outTake1.setPower(outTake1Power) ;
             HW.outTake2.setPower(outTake2Power);
-            HW.outTake3.setPower(outTake3Power);
 
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());

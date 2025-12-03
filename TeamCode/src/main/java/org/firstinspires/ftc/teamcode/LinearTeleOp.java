@@ -310,8 +310,7 @@ public class LinearTeleOp extends LinearOpMode {
 
             // Send calculated power to non-drive motors
             HW.intakeMotor.setPower(intakeMotorPower);
-            HW.outTakeMotorLeft.setPower(outTakeMotorLeftPower);
-            HW.outTakeMotorRight.setPower(outTakeMotorRightPower);
+
 
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
