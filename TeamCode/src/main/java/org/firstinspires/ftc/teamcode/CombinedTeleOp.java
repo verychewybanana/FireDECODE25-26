@@ -148,13 +148,13 @@ public class CombinedTeleOp extends LinearOpMode {
 
             // Intake control
             if (gamepad2.left_bumper) {
-                intakeMotorPower = 0.4;
-            } else if (gamepad2.right_bumper) {
-                intakeMotorPower = 0.75;
-            } else if (gamepad2.right_trigger > 0) {
                 intakeMotorPower = -0.4;
+            } else if (gamepad2.right_bumper) {
+                intakeMotorPower = -0.75;
+            } else if (gamepad2.right_trigger > 0) {
+                intakeMotorPower = 0.4;
             } else if (gamepad2.left_trigger > 0) {
-                intakeMotorPower = -0.2;
+                intakeMotorPower = 0.2;
             } else {
                 intakeMotorPower = 0;
             }
