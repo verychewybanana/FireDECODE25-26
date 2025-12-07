@@ -14,7 +14,14 @@ public class TuneConstants extends LinearOpMode {
     @Override
     public void runOpMode() {
         robot = new FireHardwareMap(this.hardwareMap);
-        BasicAutoDriving autoDriving = new BasicAutoDriving(robot.frontLeftMotor, robot.frontRightMotor, robot.backLeftMotor, robot.backRightMotor);
+        BasicAutoDriving autoDriving = new BasicAutoDriving(
+                this,
+                robot.frontLeftMotor,
+                robot.frontRightMotor,
+                robot.backLeftMotor,
+                robot.backRightMotor
+        );
+
 
 
         // Wait for the game to start (driver presses PLAY)

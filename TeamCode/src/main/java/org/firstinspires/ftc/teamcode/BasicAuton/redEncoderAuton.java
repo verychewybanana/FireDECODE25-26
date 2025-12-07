@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.BasicAuton;
+/*package org.firstinspires.ftc.teamcode.BasicAuton;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -32,9 +32,13 @@ public class redEncoderAuton extends LinearOpMode {
             sleep(3000);
             robot.outTakeMotorRight.setPower(0);
             robot.outTakeMotorLeft.setPower(0);
-            robot.intakeMotor.setPower(0);*/
+            robot.intakeMotor.setPower(0);
         }
 
     }
 
 }
+ */
+
+
+

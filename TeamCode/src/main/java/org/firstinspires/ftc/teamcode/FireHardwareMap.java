@@ -10,13 +10,21 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 
 public class FireHardwareMap {
     //create drivetrain motors
+
+    //Motors near intake are front, motors near outtake are back
     public DcMotor frontRightMotor = null;
     public DcMotor frontLeftMotor = null;
     public DcMotor backRightMotor = null;
     public DcMotor backLeftMotor = null;
     public DcMotor intakeMotor = null;
-    public DcMotor outTake1 = null;     //12/13
-    public DcMotor outTake2 = null;
+
+    //Left outtake when shooting (near back right motor)
+    public DcMotor outTakeLeft = null;
+    //Left outtake when shooting (near back left motor)
+    public DcMotor outTakeRight = null;
+
+    //intermediate motor
+    public DcMotor midMotor = null;
     public BNO055IMU imu;
     public RevBlinkinLedDriver led;
 
@@ -42,8 +50,9 @@ public class FireHardwareMap {
         backRightMotor = HardwareMap.get(DcMotor.class, "backRightMotor");
         backLeftMotor = HardwareMap.get(DcMotor.class, "backLeftMotor");
         intakeMotor = HardwareMap.get(DcMotor.class, "intakeMotor");
-        outTake1 = HardwareMap.get(DcMotor.class, "outTake1");
-        outTake2 = HardwareMap.get(DcMotor.class, "outTake2");
+        outTakeLeft = HardwareMap.get(DcMotor.class, "outTakeLeft");
+        outTakeRight = HardwareMap.get(DcMotor.class, "outTakeRight");
+        midMotor = HardwareMap.get(DcMotor.class, "midMotor");
 
         // imu = HardwareMap.get(BNO055IMU.class, "imuex");
        // led = HardwareMap.get(RevBlinkinLedDriver.class, "led");
@@ -57,9 +66,11 @@ public class FireHardwareMap {
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
         backRightMotor.setDirection(DcMotor.Direction.FORWARD);
         backLeftMotor.setDirection(DcMotor.Direction.REVERSE);
+
         intakeMotor.setDirection(DcMotor.Direction.REVERSE);
-        outTake2.setDirection(DcMotor.Direction.FORWARD);
-        outTake1.setDirection(DcMotor.Direction.FORWARD);
+        midMotor.setDirection(DcMotor.Direction.FORWARD);
+        outTakeLeft.setDirection(DcMotor.Direction.REVERSE);
+        outTakeRight.setDirection(DcMotor.Direction.FORWARD);
 
 
 
@@ -70,8 +81,9 @@ public class FireHardwareMap {
         backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        outTake2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        outTake1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        midMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        outTakeRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        outTakeLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
 
@@ -82,8 +94,9 @@ public class FireHardwareMap {
         backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        outTake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        outTake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outTakeLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outTakeRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //outTake3.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
 
@@ -95,8 +108,9 @@ public class FireHardwareMap {
         backLeftMotor.setPower(0);
 
         intakeMotor.setPower(0);
-        outTake1.setPower(0);
-        outTake2.setPower(0);
+        outTakeLeft.setPower(0);
+        outTakeRight.setPower(0);
+        midMotor.setPower(0);
 
 
         // .setPosition(Constants.ARMSERVO_HOMEPOSITION);
