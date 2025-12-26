@@ -169,8 +169,8 @@ public class New extends LinearOpMode {
 
             // Send calculated power to non-drive motors
             HW.intakeMotor.setPower(intakeMotorPower);
-            HW.outTake1.setPower(outTake1Power) ;
-            HW.outTake2.setPower(outTake2Power);
+            HW.outTakeLeft.setPower(outTake1Power) ;
+            HW.outTakeRight.setPower(outTake2Power);
 
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());

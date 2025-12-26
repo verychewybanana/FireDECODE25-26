@@ -92,7 +92,7 @@ public class BasicAutoDriving {
     }
 
     // Strafe left/right in cm (positive = right if your mecanum directions match)
-    public void strafe(double cm) {
+    /* public void strafe(double cm) {
         int flTarget = frontLeftMotor.getCurrentPosition()  - (int) (cm * ticksPerCentimeterStrafe);
         int frTarget = frontRightMotor.getCurrentPosition() + (int) (cm * ticksPerCentimeterStrafe);
         int blTarget = backLeftMotor.getCurrentPosition()   + (int) (cm * ticksPerCentimeterStrafe);
@@ -111,10 +111,37 @@ public class BasicAutoDriving {
         while (opMode.opModeIsActive() && anyBusy()) {
             opMode.idle();
         }
+    } */
+
+    public void strafe(double cm) {
+
+        // You WANT: LF = -p, RF = +p, LB = +p, RB = -p
+        // But your motor directions flip the left side
+        // So we must invert the left side in TARGET SPACE
+
+        int flTarget = frontLeftMotor.getCurrentPosition()  + (int) (cm * ticksPerCentimeterStrafe);
+        int frTarget = frontRightMotor.getCurrentPosition() + (int) (cm * ticksPerCentimeterStrafe * -1);
+        int blTarget = backLeftMotor.getCurrentPosition()   + (int) (cm * ticksPerCentimeterStrafe * -1);
+        int brTarget = backRightMotor.getCurrentPosition()  + (int) (cm * ticksPerCentimeterStrafe);
+
+        frontLeftMotor.setTargetPosition(flTarget);
+        frontRightMotor.setTargetPosition(frTarget);
+        backLeftMotor.setTargetPosition(blTarget);
+        backRightMotor.setTargetPosition(brTarget);
+
+        frontLeftMotor.setPower(0.25);
+        frontRightMotor.setPower(0.25);
+        backLeftMotor.setPower(0.25);
+        backRightMotor.setPower(0.25);
+
+        while (opMode.opModeIsActive() && anyBusy()) {
+            opMode.idle();
+        }
     }
 
+
     // Turn in place (positive degrees = one direction, tune as needed)
-    public void turn(double degrees) {
+    /*public void turn(double degrees) {
         int flTarget = frontLeftMotor.getCurrentPosition()  + (int) (degrees * ticksPerDegree);
         int frTarget = frontRightMotor.getCurrentPosition() - (int) (degrees * ticksPerDegree);
         int blTarget = backLeftMotor.getCurrentPosition()   + (int) (degrees * ticksPerDegree);
@@ -133,5 +160,36 @@ public class BasicAutoDriving {
         while (opMode.opModeIsActive() && anyBusy()) {
             opMode.idle();
         }
+    } */
+
+    public void turn(double degrees) {
+
+        // turn direction multiplier
+        double p = degrees * ticksPerDegree;
+
+        // You WANT:
+        // LF = -p, RF = +p, LB = -p, RB = +p
+        // BECAUSE your left motors are reversed in hardware map.
+
+        int flTarget = frontLeftMotor.getCurrentPosition()  - (int) p;
+        int frTarget = frontRightMotor.getCurrentPosition() + (int) p;
+        int blTarget = backLeftMotor.getCurrentPosition()   - (int) p;
+        int brTarget = backRightMotor.getCurrentPosition()  + (int) p;
+
+        frontLeftMotor.setTargetPosition(flTarget);
+        frontRightMotor.setTargetPosition(frTarget);
+        backLeftMotor.setTargetPosition(blTarget);
+        backRightMotor.setTargetPosition(brTarget);
+
+        // Same power on all — signs handled by encoder targets & motor directions
+        frontLeftMotor.setPower(0.25);
+        frontRightMotor.setPower(0.25);
+        backLeftMotor.setPower(0.25);
+        backRightMotor.setPower(0.25);
+
+        while (opMode.opModeIsActive() && anyBusy()) {
+            opMode.idle();
+        }
     }
+
 }
