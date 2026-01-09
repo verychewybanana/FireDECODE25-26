@@ -67,8 +67,8 @@ public class FireHardwareMap {
         backRightMotor.setDirection(DcMotor.Direction.FORWARD);
         backLeftMotor.setDirection(DcMotor.Direction.REVERSE);
 
-        intakeMotor.setDirection(DcMotor.Direction.REVERSE);
-        midMotor.setDirection(DcMotor.Direction.FORWARD);
+        intakeMotor.setDirection(DcMotor.Direction.FORWARD);
+        midMotor.setDirection(DcMotor.Direction.REVERSE);
         outTakeLeft.setDirection(DcMotor.Direction.REVERSE);
         outTakeRight.setDirection(DcMotor.Direction.FORWARD);
 
@@ -96,7 +96,7 @@ public class FireHardwareMap {
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outTakeLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outTakeRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        //outTake3.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+         midMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
 

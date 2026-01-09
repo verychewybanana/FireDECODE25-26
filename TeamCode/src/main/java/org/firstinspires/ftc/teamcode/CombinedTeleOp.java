@@ -146,12 +146,12 @@ public class CombinedTeleOp extends LinearOpMode {
             // bumpers: intake, triggers: mid motor
             if (gamepad2.left_bumper) {
                 // intake in slowly
-                midMotorPower = 0.0;
+                midMotorPower = -0.5;
                 intakeMotorPower = -0.75;
             } else if (gamepad2.right_bumper) {
                 // intake out faster (reverse)
-                midMotorPower = -0.25;
-                intakeMotorPower = 0.0;
+                midMotorPower = -0.5;
+                //intakeMotorPower = 0.0;
             } else if (gamepad2.right_trigger > 0.1) {
                 // mid in
                 midMotorPower = 0.15;
