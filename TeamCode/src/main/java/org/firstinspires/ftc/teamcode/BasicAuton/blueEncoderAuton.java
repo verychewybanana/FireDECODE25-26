@@ -8,12 +8,14 @@ import org.firstinspires.ftc.teamcode.FireHardwareMap;
 public class blueEncoderAuton extends LinearOpMode {
 
     FireHardwareMap robot = null;
+    private static final double PUSHER_POS_PUSH = 1;
+    private static final double PUSHER_POS_REST = 0.0;
 
     @Override
     public void runOpMode() {
 
         robot = new FireHardwareMap(hardwareMap);
-
+        robot.pusherServo.setPosition(PUSHER_POS_REST);
         BasicAutoDriving bad = new BasicAutoDriving(
                 this,   // REQUIRED
                 robot.frontLeftMotor,
@@ -28,28 +30,28 @@ public class blueEncoderAuton extends LinearOpMode {
         waitForStart();
 
         if (opModeIsActive()) {
-            bad.driveTime(0.5, 1500); // Power 0.5, Time 500ms
-            robot.outTakeRight.setPower(0.65);
-            robot.outTakeLeft.setPower(0.65);
-            sleep(2000);
+            robot.outTakeRight.setPower(0.46);
+            robot.outTakeLeft.setPower(0.46);
+            bad.driveTime(0.3, 1750); // Power 0.5, Time 500ms
             robot.midMotor.setPower(-0.5);
             robot.intakeMotor.setPower(-0.75);
-            sleep(3000);
-            robot.outTakeRight.setPower(0.45);
-            robot.outTakeLeft.setPower(0.45);
+            sleep(600);
+            robot.midMotor.setPower(0);
+            robot.intakeMotor.setPower(0);
+            robot.outTakeRight.setPower(0.44);
+            robot.outTakeLeft.setPower(0.44);
+            bad.driveTime(0.3, 750);
+            sleep(500);
+            sleep(500);
+            robot.midMotor.setPower(-0.5);
+            robot.intakeMotor.setPower(-0.75);
             sleep(1000);
-            robot.pusherServo.setPosition(-0.16);
-            sleep(450);
-            robot.pusherServo.setPosition(1);
-            sleep(450);
-            robot.intakeMotor.setPower(-0.75);
-            robot.midMotor.setPower(-0.5);
+            robot.outTakeRight.setPower(0.38);
+            robot.outTakeLeft.setPower(0.38);
             sleep(2000);
-            robot.pusherServo.setPosition(-0.16);
-            sleep(300);
-            robot.pusherServo.setPosition(1);
-            sleep(300);
-            robot.pusherServo.setPosition(-1);
+            servoFlip(3000);
+
+
             //bad.drive(150);
         }
     }
@@ -59,6 +61,13 @@ public class blueEncoderAuton extends LinearOpMode {
         sleep(2000);
 
         robot.intakeMotor.setPower(0);
+    }
+
+    private void servoFlip(long holdMs) {
+        robot.pusherServo.setPosition(PUSHER_POS_PUSH);  // "press"
+        sleep(holdMs);
+        robot.pusherServo.setPosition(PUSHER_POS_REST);  // "release"
+        sleep(holdMs); // small settle time (tune)
     }
 
     public void forward(double power) {

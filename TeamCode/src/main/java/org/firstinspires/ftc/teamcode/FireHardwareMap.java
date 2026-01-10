@@ -61,14 +61,14 @@ public class FireHardwareMap {
         outTakeLeft = HardwareMap.get(DcMotor.class, "outTakeLeft");
         outTakeRight = HardwareMap.get(DcMotor.class, "outTakeRight");
         midMotor = HardwareMap.get(DcMotor.class, "midMotor");
-       // limelight = HardwareMap.get(Limelight3A.class, "limelight");
+        // limelight = HardwareMap.get(Limelight3A.class, "limelight");
         // Define Voltage Sensor (Usually "Control Hub")
         batteryVoltageSensor = HardwareMap.voltageSensor.iterator().next();
         pusherServo = HardwareMap.get(Servo.class, "pusherServo");
 
         // imu = HardwareMap.get(BNO055IMU.class, "imuex");
-       // led = HardwareMap.get(RevBlinkinLedDriver.class, "led");
-       // color = HardwareMap.get(ColorRangeSensor.class, "color");
+        // led = HardwareMap.get(RevBlinkinLedDriver.class, "led");
+        // color = HardwareMap.get(ColorRangeSensor.class, "color");
 
         //Making servo
 

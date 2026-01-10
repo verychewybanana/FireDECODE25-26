@@ -37,10 +37,10 @@ public class CombinedTeleOp extends LinearOpMode {
     public boolean isStrafing = false;
 
     // --- OUTTAKE POWER PRESETS ---
-    public final double OUTTAKE_POWER_A = 0.5; // Low power
-    public final double OUTTAKE_POWER_X = 0.55; // Mid power
-    public final double OUTTAKE_POWER_Y = 0.6; // Mid-high power
-    public final double OUTTAKE_POWER_B = 0.75; // High power
+    public final double OUTTAKE_POWER_A = 0.4; // Low    power
+    public final double OUTTAKE_POWER_X = 0.42; // Mid power
+    public final double OUTTAKE_POWER_Y = 0.5; // Mid-high power
+    public final double OUTTAKE_POWER_B = 0.5; // High power
 
     // --- SERVO POSITIONS ---
     // 0.0 is usually the "negative" extreme, 1.0 is "positive", 0.5 is center.
@@ -55,6 +55,15 @@ public class CombinedTeleOp extends LinearOpMode {
     boolean wasGamepad2B_Pressed = false;
     boolean wasGamepad2X_Pressed = false;
     boolean wasGamepad2Y_Pressed = false;
+
+    // --- OUTTAKE TRIM (DPAD UP/DOWN) ---
+    private double outtakeTrim = 0.0;
+    private static final double OUTTAKE_TRIM_STEP = 0.01;
+    private static final double OUTTAKE_TRIM_MIN  = -0.20;
+    private static final double OUTTAKE_TRIM_MAX  =  0.20;
+
+    private boolean wasDpadUp = false;
+    private boolean wasDpadDown = false;
 
     // --- OUTTAKE RPM STUFF ---
     // goBILDA Yellow Jacket 6000 RPM, 1:1 ratio → 28 ticks per rev
@@ -133,6 +142,15 @@ public class CombinedTeleOp extends LinearOpMode {
                 rightBackPower  /= 1.6;
             }
 
+            // Operator slow-mode: Player 2 holds A → drive at 1/2 power
+            if (gamepad2.a) {
+                leftFrontPower  *= 0.15;
+                rightFrontPower *= 0.15;
+                leftBackPower   *= 0.15;
+                rightBackPower  *= 0.15;
+            }
+
+
             // Apply drive powers
             HW.frontLeftMotor.setPower(leftFrontPower);
             HW.frontRightMotor.setPower(rightFrontPower);
@@ -142,6 +160,22 @@ public class CombinedTeleOp extends LinearOpMode {
             telemetry.addData("Mode", "Manual Control");
             telemetry.addData("Front L/R", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  L/R", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+
+            // --- OUTTAKE TRIM (DPAD UP/DOWN) ---
+            boolean dpadUp = gamepad2.dpad_up;
+            boolean dpadDown = gamepad2.dpad_down;
+
+            if (dpadUp && !wasDpadUp) {
+                outtakeTrim += OUTTAKE_TRIM_STEP;
+            }
+            if (dpadDown && !wasDpadDown) {
+                outtakeTrim -= OUTTAKE_TRIM_STEP;
+            }
+
+            outtakeTrim = Math.max(OUTTAKE_TRIM_MIN, Math.min(OUTTAKE_TRIM_MAX, outtakeTrim));
+
+            wasDpadUp = dpadUp;
+            wasDpadDown = dpadDown;
 
             // --- INTAKE + MID + OUTTAKE (gamepad2) ---
 
@@ -165,7 +199,7 @@ public class CombinedTeleOp extends LinearOpMode {
             } else if (gamepad2.left_trigger > 0.1) {
                 midMotorPower = -0;
                 intakeMotorPower = -0.75;
-            } else if (gamepad2.a) {
+            } else if (gamepad2.dpad_left || gamepad2.dpad_right) {
                 midMotorPower = 0.5;
                 intakeMotorPower = 0.75;
             } else if (gamepad2.left_bumper) {
@@ -198,26 +232,18 @@ public class CombinedTeleOp extends LinearOpMode {
             boolean isGamepad2Y_Pressed = gamepad2.y;
 
             // A toggle
-            /*
             if (isGamepad2A_Pressed && !wasGamepad2A_Pressed) {
+                outtakeTrim = 0.0; // reset trim whenever A is pressed
                 if (currentOuttakePower == OUTTAKE_POWER_A) {
                     currentOuttakePower = 0.0;
                 } else {
                     currentOuttakePower = OUTTAKE_POWER_A;
                 }
-            } */
-           /* if (isGamepad2A_Pressed) {
-                midMotorPower = -0.5;
-                intakeMotorPower = -0.75;
             }
 
-            else {
-                midMotorPower = 0;
-                intakeMotorPower = 0;
-            }
-              */
             // B toggle
             if (isGamepad2B_Pressed && !wasGamepad2B_Pressed) {
+                outtakeTrim = 0.0; // reset trim whenever B is pressed
                 if (currentOuttakePower == OUTTAKE_POWER_B) {
                     currentOuttakePower = 0.0;
                 } else {
@@ -227,6 +253,7 @@ public class CombinedTeleOp extends LinearOpMode {
 
             // X toggle
             if (isGamepad2X_Pressed && !wasGamepad2X_Pressed) {
+                outtakeTrim = 0.0; // reset trim whenever X is pressed
                 if (currentOuttakePower == OUTTAKE_POWER_X) {
                     currentOuttakePower = 0.0;
                 } else {
@@ -236,6 +263,7 @@ public class CombinedTeleOp extends LinearOpMode {
 
             // Y toggle
             if (isGamepad2Y_Pressed && !wasGamepad2Y_Pressed) {
+                outtakeTrim = 0.0; // reset trim whenever Y is pressed
                 if (currentOuttakePower == OUTTAKE_POWER_Y) {
                     currentOuttakePower = 0.0;
                 } else {
@@ -249,9 +277,12 @@ public class CombinedTeleOp extends LinearOpMode {
             wasGamepad2X_Pressed = isGamepad2X_Pressed;
             wasGamepad2Y_Pressed = isGamepad2Y_Pressed;
 
-            // Same outtake power to both motors
-            outTakeMotorLeftPower  = currentOuttakePower;
-            outTakeMotorRightPower = currentOuttakePower;
+            // Same outtake power to both motors (WITH TRIM)
+            double trimmedOuttakePower = currentOuttakePower + outtakeTrim;
+            trimmedOuttakePower = Math.max(-1.0, Math.min(1.0, trimmedOuttakePower));
+
+            outTakeMotorLeftPower  = trimmedOuttakePower;
+            outTakeMotorRightPower = trimmedOuttakePower;
 
             // Apply intake / mid / outtake powers
             HW.intakeMotor.setPower(intakeMotorPower);
@@ -288,6 +319,8 @@ public class CombinedTeleOp extends LinearOpMode {
             telemetry.addData("Intake Power", "%.2f", intakeMotorPower);
             telemetry.addData("Mid Power", "%.2f", midMotorPower);
             telemetry.addData("Outtake Power", "%.2f", currentOuttakePower);
+            telemetry.addData("Outtake Trim", "%.2f", outtakeTrim);
+            telemetry.addData("Outtake Cmd", "%.2f", trimmedOuttakePower);
             telemetry.addData("Pusher Pos", "%.2f", pusherTargetPos); // Added telemetry for servo
             telemetry.addData("Outtake1 RPM", "%.0f", outtake1Rpm);
             telemetry.addData("Outtake2 RPM", "%.0f", outtake2Rpm);
