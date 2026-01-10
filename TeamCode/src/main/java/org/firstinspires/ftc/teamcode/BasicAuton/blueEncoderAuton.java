@@ -30,8 +30,8 @@ public class blueEncoderAuton extends LinearOpMode {
         waitForStart();
 
         if (opModeIsActive()) {
-            robot.outTakeRight.setPower(0.46);
-            robot.outTakeLeft.setPower(0.46);
+            robot.outTakeRight.setPower(0.4625);
+            robot.outTakeLeft.setPower(0.4625);
             bad.driveTime(0.3, 1750); // Power 0.5, Time 500ms
             robot.midMotor.setPower(-0.5);
             robot.intakeMotor.setPower(-0.75);
@@ -49,7 +49,12 @@ public class blueEncoderAuton extends LinearOpMode {
             robot.outTakeRight.setPower(0.38);
             robot.outTakeLeft.setPower(0.38);
             sleep(2000);
-            servoFlip(3000);
+            servoFlip(1000);
+            robot.frontLeftMotor.setPower(0.5);
+            robot.frontRightMotor.setPower(-0.5);
+            robot.backLeftMotor.setPower(-0.5);
+            robot.backRightMotor.setPower(0.5);
+            sleep(1000);
 
 
             //bad.drive(150);
