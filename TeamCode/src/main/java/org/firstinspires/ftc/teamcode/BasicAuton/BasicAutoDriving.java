@@ -12,12 +12,10 @@ public class BasicAutoDriving {
     public DcMotor backLeftMotor = null;
     public DcMotor backRightMotor = null;
 
-    // TODO: re-tune these for this robot!
+    // Tuning variables
     double ticksPerCentimeterDrive  = 17.8;
     double ticksPerCentimeterStrafe = 21.3;
     double ticksPerDegree           = 12;
-
-    int error = 8;
 
     public BasicAutoDriving(LinearOpMode opMode,
                             DcMotor frontLeft,
@@ -38,13 +36,12 @@ public class BasicAutoDriving {
         backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        // Use encoders
+        // Standard setup (Auton normally uses encoders)
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        // Set initial target and switch to RUN_TO_POSITION
         frontLeftMotor.setTargetPosition(0);
         frontRightMotor.setTargetPosition(0);
         backLeftMotor.setTargetPosition(0);
@@ -55,7 +52,6 @@ public class BasicAutoDriving {
         backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        // Default power
         frontLeftMotor.setPower(0.5);
         frontRightMotor.setPower(0.5);
         backLeftMotor.setPower(0.5);
@@ -69,7 +65,7 @@ public class BasicAutoDriving {
                 || backRightMotor.isBusy();
     }
 
-    // Drive forward/backward in cm (positive = forward based on motor directions)
+    // ORIGINAL ENCODER DRIVE (Keep this!)
     public void drive(double cm) {
         int flTarget = frontLeftMotor.getCurrentPosition()  + (int) (cm * ticksPerCentimeterDrive);
         int frTarget = frontRightMotor.getCurrentPosition() + (int) (cm * ticksPerCentimeterDrive);
@@ -91,34 +87,32 @@ public class BasicAutoDriving {
         }
     }
 
-    // Strafe left/right in cm (positive = right if your mecanum directions match)
-    /* public void strafe(double cm) {
-        int flTarget = frontLeftMotor.getCurrentPosition()  - (int) (cm * ticksPerCentimeterStrafe);
-        int frTarget = frontRightMotor.getCurrentPosition() + (int) (cm * ticksPerCentimeterStrafe);
-        int blTarget = backLeftMotor.getCurrentPosition()   + (int) (cm * ticksPerCentimeterStrafe);
-        int brTarget = backRightMotor.getCurrentPosition()  - (int) (cm * ticksPerCentimeterStrafe);
+    // --- NEW TIME-BASED DRIVE METHOD ---
+    public void driveTime(double power, long timeMs) {
+        // 1. Force motors to raw power mode (ignores encoders)
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        frontLeftMotor.setTargetPosition(flTarget);
-        frontRightMotor.setTargetPosition(frTarget);
-        backLeftMotor.setTargetPosition(blTarget);
-        backRightMotor.setTargetPosition(brTarget);
+        // 2. Set Power
+        frontLeftMotor.setPower(power);
+        frontRightMotor.setPower(power);
+        backLeftMotor.setPower(power);
+        backRightMotor.setPower(power);
 
-        frontLeftMotor.setPower(0.5);
-        frontRightMotor.setPower(0.5);
-        backLeftMotor.setPower(0.5);
-        backRightMotor.setPower(0.5);
+        // 3. Wait
+        opMode.sleep(timeMs);
 
-        while (opMode.opModeIsActive() && anyBusy()) {
-            opMode.idle();
-        }
-    } */
+        // 4. Stop
+        frontLeftMotor.setPower(0);
+        frontRightMotor.setPower(0);
+        backLeftMotor.setPower(0);
+        backRightMotor.setPower(0);
+    }
 
+    // ORIGINAL STRAFE
     public void strafe(double cm) {
-
-        // You WANT: LF = -p, RF = +p, LB = +p, RB = -p
-        // But your motor directions flip the left side
-        // So we must invert the left side in TARGET SPACE
-
         int flTarget = frontLeftMotor.getCurrentPosition()  + (int) (cm * ticksPerCentimeterStrafe);
         int frTarget = frontRightMotor.getCurrentPosition() + (int) (cm * ticksPerCentimeterStrafe * -1);
         int blTarget = backLeftMotor.getCurrentPosition()   + (int) (cm * ticksPerCentimeterStrafe * -1);
@@ -139,37 +133,9 @@ public class BasicAutoDriving {
         }
     }
 
-
-    // Turn in place (positive degrees = one direction, tune as needed)
-    /*public void turn(double degrees) {
-        int flTarget = frontLeftMotor.getCurrentPosition()  + (int) (degrees * ticksPerDegree);
-        int frTarget = frontRightMotor.getCurrentPosition() - (int) (degrees * ticksPerDegree);
-        int blTarget = backLeftMotor.getCurrentPosition()   + (int) (degrees * ticksPerDegree);
-        int brTarget = backRightMotor.getCurrentPosition()  - (int) (degrees * ticksPerDegree);
-
-        frontLeftMotor.setTargetPosition(flTarget);
-        frontRightMotor.setTargetPosition(frTarget);
-        backLeftMotor.setTargetPosition(blTarget);
-        backRightMotor.setTargetPosition(brTarget);
-
-        frontLeftMotor.setPower(0.5);
-        frontRightMotor.setPower(0.5);
-        backLeftMotor.setPower(0.5);
-        backRightMotor.setPower(0.5);
-
-        while (opMode.opModeIsActive() && anyBusy()) {
-            opMode.idle();
-        }
-    } */
-
+    // ORIGINAL TURN
     public void turn(double degrees) {
-
-        // turn direction multiplier
         double p = degrees * ticksPerDegree;
-
-        // You WANT:
-        // LF = -p, RF = +p, LB = -p, RB = +p
-        // BECAUSE your left motors are reversed in hardware map.
 
         int flTarget = frontLeftMotor.getCurrentPosition()  - (int) p;
         int frTarget = frontRightMotor.getCurrentPosition() + (int) p;
@@ -181,7 +147,6 @@ public class BasicAutoDriving {
         backLeftMotor.setTargetPosition(blTarget);
         backRightMotor.setTargetPosition(brTarget);
 
-        // Same power on all — signs handled by encoder targets & motor directions
         frontLeftMotor.setPower(0.25);
         frontRightMotor.setPower(0.25);
         backLeftMotor.setPower(0.25);
@@ -191,5 +156,4 @@ public class BasicAutoDriving {
             opMode.idle();
         }
     }
-
 }

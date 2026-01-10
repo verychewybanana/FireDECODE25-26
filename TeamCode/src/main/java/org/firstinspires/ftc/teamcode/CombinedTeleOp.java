@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotor;
+// Import Servo if you need to reference the class directly, though usually handled in HW map
+import com.qualcomm.robotcore.hardware.Servo;
 
 /**
  *
@@ -35,10 +37,16 @@ public class CombinedTeleOp extends LinearOpMode {
     public boolean isStrafing = false;
 
     // --- OUTTAKE POWER PRESETS ---
-    public final double OUTTAKE_POWER_A = 0.55; // Low power
-    public final double OUTTAKE_POWER_X = 0.57; // Mid power
-    public final double OUTTAKE_POWER_Y = 0.58; // Mid-high power
-    public final double OUTTAKE_POWER_B = 0.59; // High power
+    public final double OUTTAKE_POWER_A = 0.5; // Low power
+    public final double OUTTAKE_POWER_X = 0.55; // Mid power
+    public final double OUTTAKE_POWER_Y = 0.6; // Mid-high power
+    public final double OUTTAKE_POWER_B = 0.75; // High power
+
+    // --- SERVO POSITIONS ---
+    // 0.0 is usually the "negative" extreme, 1.0 is "positive", 0.5 is center.
+    // Adjust these values if the servo moves too far or not enough.
+    public final double PUSHER_POS_POSITIVE = 1;
+    public final double PUSHER_POS_REST     = 0;
 
     private double currentOuttakePower = 0.0; // Current power state
 
@@ -141,29 +149,46 @@ public class CombinedTeleOp extends LinearOpMode {
             double midMotorPower    = 0.0;
             double outTakeMotorLeftPower;
             double outTakeMotorRightPower;
-
+            double pusherTargetPos = PUSHER_POS_REST; // Fix: Start with a default value
             // Intake + mid control
             // bumpers: intake, triggers: mid motor
-            if (gamepad2.left_bumper) {
-                // intake in slowly
+            // 1. SERVO LOGIC (Bumpers)
+            if (gamepad2.right_bumper) {
+                pusherTargetPos = PUSHER_POS_POSITIVE;
+            }
+            // If neither is pressed, it stays at PUSHER_POS_REST (set at the top)
+
+            // 2. INTAKE LOGIC (Triggers + Button A)
+            if (gamepad2.right_trigger > 0.1) {
                 midMotorPower = -0.5;
                 intakeMotorPower = -0.75;
-            } else if (gamepad2.right_bumper) {
-                // intake out faster (reverse)
-                midMotorPower = -0.5;
-                //intakeMotorPower = 0.0;
-            } else if (gamepad2.right_trigger > 0.1) {
-                // mid in
-                midMotorPower = 0.15;
-                intakeMotorPower = 0.0;
             } else if (gamepad2.left_trigger > 0.1) {
-                // mid out
-                midMotorPower = 0.0;
-                intakeMotorPower = 0.4;
-            } else {
-                intakeMotorPower = 0.0;
-                midMotorPower = 0.0;
+                midMotorPower = -0;
+                intakeMotorPower = -0.75;
+            } else if (gamepad2.a) {
+                midMotorPower = 0.5;
+                intakeMotorPower = 0.75;
+            } else if (gamepad2.left_bumper) {
+                midMotorPower = -0.5;
+                intakeMotorPower = 0;
             }
+            else {
+                midMotorPower = 0.0;
+                intakeMotorPower = 0.0;
+            }
+
+            // --- PUSHER SERVO LOGIC (UPDATED) ---
+            /*
+            if (gamepad1.x) {
+                // Move to "Negative" Position (0.0)
+                pusherTargetPos = PUSHER_POS_POSITIVE;
+            } else if (gamepad1.y) {
+                // Move to "Positive" Position (1.0)
+                pusherTargetPos = PUSHER_POS_NEGATIVE;
+            } else {
+                // Move to "Rest" Position (0.5) when no button is pressed
+                pusherTargetPos = PUSHER_POS_REST;
+            }  */
 
             // --- Outtake 4-button toggle logic ---
 
@@ -173,14 +198,24 @@ public class CombinedTeleOp extends LinearOpMode {
             boolean isGamepad2Y_Pressed = gamepad2.y;
 
             // A toggle
+            /*
             if (isGamepad2A_Pressed && !wasGamepad2A_Pressed) {
                 if (currentOuttakePower == OUTTAKE_POWER_A) {
                     currentOuttakePower = 0.0;
                 } else {
                     currentOuttakePower = OUTTAKE_POWER_A;
                 }
+            } */
+           /* if (isGamepad2A_Pressed) {
+                midMotorPower = -0.5;
+                intakeMotorPower = -0.75;
             }
 
+            else {
+                midMotorPower = 0;
+                intakeMotorPower = 0;
+            }
+              */
             // B toggle
             if (isGamepad2B_Pressed && !wasGamepad2B_Pressed) {
                 if (currentOuttakePower == OUTTAKE_POWER_B) {
@@ -224,6 +259,9 @@ public class CombinedTeleOp extends LinearOpMode {
             HW.outTakeLeft.setPower(outTakeMotorLeftPower);
             HW.outTakeRight.setPower(outTakeMotorRightPower);
 
+            // Apply servo position (This replaces setPower)
+            HW.pusherServo.setPosition(pusherTargetPos);
+
             // --- OUTTAKE RPM UPDATE ---
 
             long now = System.nanoTime();
@@ -250,6 +288,7 @@ public class CombinedTeleOp extends LinearOpMode {
             telemetry.addData("Intake Power", "%.2f", intakeMotorPower);
             telemetry.addData("Mid Power", "%.2f", midMotorPower);
             telemetry.addData("Outtake Power", "%.2f", currentOuttakePower);
+            telemetry.addData("Pusher Pos", "%.2f", pusherTargetPos); // Added telemetry for servo
             telemetry.addData("Outtake1 RPM", "%.0f", outtake1Rpm);
             telemetry.addData("Outtake2 RPM", "%.0f", outtake2Rpm);
             telemetry.addData("Δ RPM", "%.0f", (outtake1Rpm - outtake2Rpm));

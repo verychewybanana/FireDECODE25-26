@@ -4,9 +4,12 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 public class FireHardwareMap {
     //create drivetrain motors
@@ -27,6 +30,11 @@ public class FireHardwareMap {
     public DcMotor midMotor = null;
     public BNO055IMU imu;
     public RevBlinkinLedDriver led;
+
+    public Servo pusherServo = null;
+
+    public Limelight3A limelight = null;
+    public VoltageSensor batteryVoltageSensor = null;
 
     public void init(HardwareMap hwMap) {
         led = hwMap.get(RevBlinkinLedDriver.class, "led");  // Make sure "led" matches your config name
@@ -53,6 +61,10 @@ public class FireHardwareMap {
         outTakeLeft = HardwareMap.get(DcMotor.class, "outTakeLeft");
         outTakeRight = HardwareMap.get(DcMotor.class, "outTakeRight");
         midMotor = HardwareMap.get(DcMotor.class, "midMotor");
+       // limelight = HardwareMap.get(Limelight3A.class, "limelight");
+        // Define Voltage Sensor (Usually "Control Hub")
+        batteryVoltageSensor = HardwareMap.voltageSensor.iterator().next();
+        pusherServo = HardwareMap.get(Servo.class, "pusherServo");
 
         // imu = HardwareMap.get(BNO055IMU.class, "imuex");
        // led = HardwareMap.get(RevBlinkinLedDriver.class, "led");
@@ -72,6 +84,7 @@ public class FireHardwareMap {
         outTakeLeft.setDirection(DcMotor.Direction.REVERSE);
         outTakeRight.setDirection(DcMotor.Direction.FORWARD);
 
+        pusherServo.setDirection(Servo.Direction.REVERSE);
 
 
         //Set motor mode
@@ -96,7 +109,7 @@ public class FireHardwareMap {
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outTakeLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outTakeRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-         midMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        midMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
 
@@ -111,6 +124,8 @@ public class FireHardwareMap {
         outTakeLeft.setPower(0);
         outTakeRight.setPower(0);
         midMotor.setPower(0);
+
+
 
 
         // .setPosition(Constants.ARMSERVO_HOMEPOSITION);

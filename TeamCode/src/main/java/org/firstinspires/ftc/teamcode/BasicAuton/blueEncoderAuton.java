@@ -28,31 +28,29 @@ public class blueEncoderAuton extends LinearOpMode {
         waitForStart();
 
         if (opModeIsActive()) {
-            bad.drive(-150);
-            robot.outTakeRight.setPower(0.57);
-            robot.outTakeLeft.setPower(0.57);
-            sleep(200);
-            //manual strafe start
-            robot.frontLeftMotor.setPower(-0.8);
-            robot.backLeftMotor.setPower(0.8);
-            robot.backRightMotor.setPower(-0.8);
-            robot.frontRightMotor.setPower(0.8);
-            sleep(200);
-            // manual strafe end
-            // manual turn start
-            robot.frontLeftMotor.setPower(0.8);
-            robot.backLeftMotor.setPower(0.8);
-            robot.backRightMotor.setPower(-0.8);
-            robot.frontRightMotor.setPower(-0.8);
-            sleep(100);
-            // manual turn end
-            robot.midMotor.setPower(0.25);
+            bad.driveTime(0.5, 1500); // Power 0.5, Time 500ms
+            robot.outTakeRight.setPower(0.65);
+            robot.outTakeLeft.setPower(0.65);
+            sleep(2000);
+            robot.midMotor.setPower(-0.5);
+            robot.intakeMotor.setPower(-0.75);
+            sleep(3000);
+            robot.outTakeRight.setPower(0.45);
+            robot.outTakeLeft.setPower(0.45);
             sleep(1000);
-            robot.outTakeRight.setPower(0);
-            robot.outTakeLeft.setPower(0);
-            robot.midMotor.setPower(0);
-            bad.drive(-300);
-            sleep(1000);
+            robot.pusherServo.setPosition(-0.16);
+            sleep(450);
+            robot.pusherServo.setPosition(1);
+            sleep(450);
+            robot.intakeMotor.setPower(-0.75);
+            robot.midMotor.setPower(-0.5);
+            sleep(2000);
+            robot.pusherServo.setPosition(-0.16);
+            sleep(300);
+            robot.pusherServo.setPosition(1);
+            sleep(300);
+            robot.pusherServo.setPosition(-1);
+            //bad.drive(150);
         }
     }
 
