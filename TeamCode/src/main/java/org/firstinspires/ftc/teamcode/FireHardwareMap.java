@@ -1,12 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -28,7 +27,10 @@ public class FireHardwareMap {
 
     //intermediate motor
     public DcMotor midMotor = null;
-    public BNO055IMU imu;
+
+    // CHANGED: BNO055IMU -> IMU (Universal Interface for BHI260AP)
+    public IMU imu;
+
     public RevBlinkinLedDriver led;
 
     public Servo pusherServo = null;
@@ -36,23 +38,24 @@ public class FireHardwareMap {
     public Limelight3A limelight = null;
     public VoltageSensor batteryVoltageSensor = null;
 
-    public void init(HardwareMap hwMap) {
-        led = hwMap.get(RevBlinkinLedDriver.class, "led");  // Make sure "led" matches your config name
-    }
-
     //Hardware Map object
     com.qualcomm.robotcore.hardware.HardwareMap HardwareMap = null;
 
     public ElapsedTime runtime = new ElapsedTime();
 
     public FireHardwareMap(com.qualcomm.robotcore.hardware.HardwareMap hwmap){
-
         initialize(hwmap);
+    }
+
+    // Optional init method if you need to call it separately
+    public void init(HardwareMap hwMap) {
+        initialize(hwMap);
     }
 
     private void initialize(com.qualcomm.robotcore.hardware.HardwareMap hwmap){
         HardwareMap = hwmap;
-        //the name of device should change based on name
+
+        // --- MOTORS ---
         frontRightMotor = HardwareMap.get(DcMotor.class, "frontRightMotor");
         frontLeftMotor = HardwareMap.get(DcMotor.class, "frontLeftMotor");
         backRightMotor = HardwareMap.get(DcMotor.class, "backRightMotor");
@@ -61,19 +64,15 @@ public class FireHardwareMap {
         outTakeLeft = HardwareMap.get(DcMotor.class, "outTakeLeft");
         outTakeRight = HardwareMap.get(DcMotor.class, "outTakeRight");
         midMotor = HardwareMap.get(DcMotor.class, "midMotor");
+
+        // --- SENSORS & SERVOS ---
         // limelight = HardwareMap.get(Limelight3A.class, "limelight");
-        // Define Voltage Sensor (Usually "Control Hub")
         batteryVoltageSensor = HardwareMap.voltageSensor.iterator().next();
         pusherServo = HardwareMap.get(Servo.class, "pusherServo");
 
-        // imu = HardwareMap.get(BNO055IMU.class, "imuex");
         // led = HardwareMap.get(RevBlinkinLedDriver.class, "led");
-        // color = HardwareMap.get(ColorRangeSensor.class, "color");
 
-        //Making servo
-
-
-        //Set up motor direction
+        // --- MOTOR DIRECTIONS ---
         frontRightMotor.setDirection(DcMotor.Direction.FORWARD);
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
         backRightMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -87,7 +86,7 @@ public class FireHardwareMap {
         pusherServo.setDirection(Servo.Direction.REVERSE);
 
 
-        //Set motor mode
+        // --- MOTOR MODES ---
         frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -99,8 +98,7 @@ public class FireHardwareMap {
         outTakeLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
-
-        //Set zero power behavior
+        // --- ZERO POWER BEHAVIOR ---
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -111,10 +109,7 @@ public class FireHardwareMap {
         outTakeRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         midMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
-
-
-        //Set 0 power
+        // --- SET INITIAL POWER ---
         frontRightMotor.setPower(0);
         frontLeftMotor.setPower(0);
         backRightMotor.setPower(0);
@@ -126,38 +121,22 @@ public class FireHardwareMap {
         midMotor.setPower(0);
 
 
+        // --------------------------------------------------------------------------------
+        // NEW IMU INITIALIZATION (BHI260AP / Universal Interface)
+        // --------------------------------------------------------------------------------
 
+        // 1. Get the IMU from hardware map (Make sure config name is "imu")
+        imu = HardwareMap.get(IMU.class, "imu");
 
-        // .setPosition(Constants.ARMSERVO_HOMEPOSITION);
-        // armServo.setPosition(0);
+        // 2. Define how the Control Hub is mounted on the robot.
+        //    EDIT THESE TWO LINES to match your actual robot mounting!
+        //    Options: UP, DOWN, LEFT, RIGHT, FORWARD, BACKWARD
+        RevHubOrientationOnRobot.LogoFacingDirection logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.UP;
+        RevHubOrientationOnRobot.UsbFacingDirection  usbDirection  = RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
 
+        RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
 
-
-        /*
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        //return value of radians
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-
-        //gets imu from rev hardware map and connects it to code
-        imu = hwmap.get(BNO055IMU.class, "imuex");
-        //sets the settings we declared above.
-        imu.initialize(parameters);
-        imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
-
-         */
-        BNO055IMU imu = HardwareMap.get(BNO055IMU.class, "imu");
-
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.mode                = BNO055IMU.SensorMode.IMU;
-        parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.loggingEnabled      = false;
-
-        imu.initialize(parameters);
+        // 3. Initialize the IMU with these parameters
+        imu.initialize(new IMU.Parameters(orientationOnRobot));
     }
 }
