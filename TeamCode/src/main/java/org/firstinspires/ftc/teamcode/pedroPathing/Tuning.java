@@ -1157,7 +1157,7 @@ class Triangle extends OpMode {
  * This is the Circle autonomous OpMode. It runs the robot in a PathChain that's actually not quite
  * a circle, but some Bezier curves that have control points set essentially in a square. However,
  * it turns enough to tune your centripetal force correction and some of your heading. Some lag in
- * heading is to be expected.
+ * heading is to be expected..
  *
  * @author Anyi Lin - 10158 Scott's Bots
  * @author Aaron Yang - 10158 Scott's Bots
