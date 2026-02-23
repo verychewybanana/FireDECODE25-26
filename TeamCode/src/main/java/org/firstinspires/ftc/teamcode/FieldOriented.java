@@ -22,7 +22,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
  * The robot moves relative to the field, not itself.
  * Pushing the stick forward always moves the robot away from the driver.
  */
-
+/*
 @TeleOp(name="Field Oriented TeleOp", group="Linear Opmode")
 public class FieldOriented extends LinearOpMode {
 
@@ -277,3 +277,5 @@ public class FieldOriented extends LinearOpMode {
         visionPortal.close();
     }
 }
+
+ */

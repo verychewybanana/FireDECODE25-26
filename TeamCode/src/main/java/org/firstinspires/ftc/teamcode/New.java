@@ -12,10 +12,12 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  *
  **/
 
-
+/*
 @TeleOp(name="New TeleOp", group="Linear Opmode")
 public class New extends LinearOpMode {
 
+
+ */
     /*
     Controls for gamepad2
     Dpad down - lower slides
@@ -35,6 +37,7 @@ public class New extends LinearOpMode {
     //ServoImplEx servo;
     //PwmControl.PwmRange range = new PwmControl.PwmRange(533,2425);
     // Declare OpMode members for each of the 4 motors.
+        /*
     private ElapsedTime runtime = new ElapsedTime();
     private FireHardwareMap HW = null;
 
@@ -178,4 +181,5 @@ public class New extends LinearOpMode {
             telemetry.update(); // Update all telemetry
         }
     }
-}
+ }
+         */

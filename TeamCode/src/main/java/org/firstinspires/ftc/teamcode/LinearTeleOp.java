@@ -19,7 +19,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
  *
  **/
 
-
+/*
 @TeleOp(name="Robot Oriented TeleOpp", group="Linear Opmode")
 public class LinearTeleOp extends LinearOpMode {
 
@@ -49,7 +49,7 @@ public class LinearTeleOp extends LinearOpMode {
     Left joystick y - spin intake wheels
     Right joystick x - actuator motor
 */
-
+/*
 
     //ServoImplEx servo;
     //PwmControl.PwmRange range = new PwmControl.PwmRange(533,2425);
@@ -67,9 +67,10 @@ public class LinearTeleOp extends LinearOpMode {
     // Variable to track the *previous* state of the button for edge detection
     // Variable to track the *previous* state of the button for edge detection
     boolean wasBumperPressed = false;
-
+*/
     // --- NEW OUTTAKE POWER VARIABLES ---
     // Feel free to tune these power levels
+    /*
     public final double OUTTAKE_POWER_A = 0.25; // Low power
     public final double OUTTAKE_POWER_B = 0.7; // Medium-low power
     public final double OUTTAKE_POWER_X = 0.35; // Medium-high power
@@ -328,3 +329,6 @@ public class LinearTeleOp extends LinearOpMode {
         // --- AUTO-AIM CLEANUP END ---
     }
 }
+
+
+*/

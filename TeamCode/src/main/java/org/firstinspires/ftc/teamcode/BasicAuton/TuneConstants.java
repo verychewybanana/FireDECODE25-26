@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.FireHardwareMap;
-
+/*
 @Autonomous(name="TuneConstants", group="Auton")
 public class TuneConstants extends LinearOpMode {
 
@@ -77,3 +77,5 @@ public class TuneConstants extends LinearOpMode {
 
     }
 }
+
+ */

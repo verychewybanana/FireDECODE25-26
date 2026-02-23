@@ -5,100 +5,61 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DcMotor;
-// Import Servo if you need to reference the class directly, though usually handled in HW map
-import com.qualcomm.robotcore.hardware.Servo;
 
 /**
+ * Controls:
+ * Gamepad 1 (Driver):
+ *   Left stick        - Drive (axial + lateral)
+ *   Right stick       - Rotate (yaw)
+ *   Right bumper      - Full speed (default is reduced speed)
  *
- * 1) Axial:    Driving forward and backward               Left-joystick Forward/Backward
- * 2) Lateral:  Strafing right and left                    Left-joystick Right and Left
- * 3) Yaw:      Rotating Clockwise and counter clockwise   Right-joystick Right and Left
- *
- **/
+ * Gamepad 2 (Operator):
+ *   Right trigger     - Intake in + mid motors in
+ *   Left trigger      - Intake in only (no mid)
+ *   Dpad left/right   - Reverse intake + mid (eject)
+ *   Left bumper       - Mid motors only (no intake)
+ *   A                 - Outtake low power toggle
+ *   X                 - Outtake mid power toggle
+ *   Y                 - Outtake mid-high power toggle
+ *   B                 - Outtake high power toggle
+ *   Dpad up/down      - Fine tune outtake power (trim)
+ */
 
 @TeleOp(name="Combined TeleOp", group="Linear Opmode")
 public class CombinedTeleOp extends LinearOpMode {
 
-    /*
-    Controls for gamepad2
-    Left bumper   - intake in slowly
-    Right bumper  - intake in faster (reverse)
-    Left trigger  - mid motor out slowly (reverse)
-    Right trigger - mid motor in faster
-    A/B/X/Y       - outtake power toggles
-    */
-
     private ElapsedTime runtime = new ElapsedTime();
     private FireHardwareMap HW = null;
 
-    public final double leftRightServoSpeed = 0.01;
-    public final double backRightMultiplier = 1.1;
-    public boolean isStrafing = false;
-
     // --- OUTTAKE POWER PRESETS ---
-    public final double OUTTAKE_POWER_A = 0.4; // Low    power
-    public final double OUTTAKE_POWER_X = 0.42; // Mid power
-    public final double OUTTAKE_POWER_Y = 0.5; // Mid-high power
-    public final double OUTTAKE_POWER_B = 0.5; // High power
+    public final double OUTTAKE_POWER_A = 0.2;
+    public final double OUTTAKE_POWER_X = 0.4;
+    public final double OUTTAKE_POWER_Y = 0.7;
+    public final double OUTTAKE_POWER_B = 0.8;
 
-    // --- SERVO POSITIONS ---
-    // 0.0 is usually the "negative" extreme, 1.0 is "positive", 0.5 is center.
-    // Adjust these values if the servo moves too far or not enough.
-    public final double PUSHER_POS_POSITIVE = 1;
-    public final double PUSHER_POS_REST     = 0;
+    private double currentOuttakePower = 0.0;
 
-    private double currentOuttakePower = 0.0; // Current power state
-
-    // Edge detection for gamepad2 buttons
-    boolean wasGamepad2A_Pressed = false;
-    boolean wasGamepad2B_Pressed = false;
-    boolean wasGamepad2X_Pressed = false;
-    boolean wasGamepad2Y_Pressed = false;
-
-    // --- OUTTAKE TRIM (DPAD UP/DOWN) ---
+    // --- OUTTAKE TRIM ---
     private double outtakeTrim = 0.0;
     private static final double OUTTAKE_TRIM_STEP = 0.01;
     private static final double OUTTAKE_TRIM_MIN  = -0.20;
     private static final double OUTTAKE_TRIM_MAX  =  0.20;
 
-    private boolean wasDpadUp = false;
-    private boolean wasDpadDown = false;
-
-    // --- OUTTAKE RPM STUFF ---
-    // goBILDA Yellow Jacket 6000 RPM, 1:1 ratio → 28 ticks per rev
-    private static final double OUTTAKE_TICKS_PER_REV = 28.0;
-
-    private int lastOuttake1Pos = 0;
-    private int lastOuttake2Pos = 0;
-    private long lastOuttakeSampleTimeNs = 0;
-
-    private double outtake1Rpm = 0.0;
-    private double outtake2Rpm = 0.0;
+    // Edge detection
+    boolean wasGamepad2A = false;
+    boolean wasGamepad2B = false;
+    boolean wasGamepad2X = false;
+    boolean wasGamepad2Y = false;
+    boolean wasDpadUp    = false;
+    boolean wasDpadDown  = false;
 
     @Override
     public void runOpMode() {
 
-        // Initialize hardware
         HW = new FireHardwareMap(this.hardwareMap);
 
-        // Telemetry to BOTH Driver Hub + Dashboard
         FtcDashboard dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
-
-        // Init encoders for RPM on outtakes
-        try {
-            HW.outTakeLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            HW.outTakeRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            HW.outTakeLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            HW.outTakeRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-            lastOuttake1Pos = HW.outTakeLeft.getCurrentPosition();
-            lastOuttake2Pos = HW.outTakeRight.getCurrentPosition();
-            lastOuttakeSampleTimeNs = System.nanoTime();
-        } catch (Exception e) {
-            telemetry.addData("Outtake Encoders", "Init failed: %s", e.getMessage());
-        }
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -106,27 +67,24 @@ public class CombinedTeleOp extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        // MAIN LOOP
         while (opModeIsActive()) {
 
-            // --- DRIVE (gamepad1) ---
-
-            // Axial: forward/back, Lateral: strafe, Yaw: rotate
-            double axial   = gamepad1.left_stick_y;
+            // -------------------------------------------------------
+            // DRIVE (Gamepad 1)
+            // -------------------------------------------------------
+            double axial   =  gamepad1.left_stick_y;
             double lateral = -gamepad1.left_stick_x * 1.1;
-            double yaw     = gamepad1.right_stick_x;
+            double yaw     =  gamepad1.right_stick_x;
 
-            // Combine joystick requests for mecanum drive.
             double leftFrontPower  = axial + lateral + yaw;
             double rightFrontPower = axial - lateral - yaw;
             double leftBackPower   = axial - lateral + yaw;
             double rightBackPower  = axial + lateral - yaw;
 
-            // Normalize so no wheel power exceeds 100%
+            // Normalize
             double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
             max = Math.max(max, Math.abs(leftBackPower));
             max = Math.max(max, Math.abs(rightBackPower));
-
             if (max > 1.0) {
                 leftFrontPower  /= max;
                 rightFrontPower /= max;
@@ -134,7 +92,7 @@ public class CombinedTeleOp extends LinearOpMode {
                 rightBackPower  /= max;
             }
 
-            // Half speed unless right bumper held (can change what you divide by)
+            // Default reduced speed, hold right bumper for full speed
             if (!gamepad1.right_bumper) {
                 leftFrontPower  /= 1.6;
                 rightFrontPower /= 1.6;
@@ -142,190 +100,90 @@ public class CombinedTeleOp extends LinearOpMode {
                 rightBackPower  /= 1.6;
             }
 
-            // Operator slow-mode: Player 2 holds A → drive at 1/2 power
-            if (gamepad2.a) {
-                leftFrontPower  *= 0.15;
-                rightFrontPower *= 0.15;
-                leftBackPower   *= 0.15;
-                rightBackPower  *= 0.15;
-            }
+            HW.leftFront.setPower(leftFrontPower);
+            HW.rightFront.setPower(rightFrontPower);
+            HW.leftBack.setPower(leftBackPower);
+            HW.rightBack.setPower(rightBackPower);
 
+            // -------------------------------------------------------
+            // INTAKE + MID MOTORS (Gamepad 2)
+            // -------------------------------------------------------
+            double intakePower = 0.0;
+            double midPower    = 0.0;
 
-            // Apply drive powers
-            HW.frontLeftMotor.setPower(leftFrontPower);
-            HW.frontRightMotor.setPower(rightFrontPower);
-            HW.backLeftMotor.setPower(leftBackPower);
-            HW.backRightMotor.setPower(rightBackPower);
-
-            telemetry.addData("Mode", "Manual Control");
-            telemetry.addData("Front L/R", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
-            telemetry.addData("Back  L/R", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-
-            // --- OUTTAKE TRIM (DPAD UP/DOWN) ---
-            boolean dpadUp = gamepad2.dpad_up;
-            boolean dpadDown = gamepad2.dpad_down;
-
-            if (dpadUp && !wasDpadUp) {
-                outtakeTrim += OUTTAKE_TRIM_STEP;
-            }
-            if (dpadDown && !wasDpadDown) {
-                outtakeTrim -= OUTTAKE_TRIM_STEP;
-            }
-
-            outtakeTrim = Math.max(OUTTAKE_TRIM_MIN, Math.min(OUTTAKE_TRIM_MAX, outtakeTrim));
-
-            wasDpadUp = dpadUp;
-            wasDpadDown = dpadDown;
-
-            // --- INTAKE + MID + OUTTAKE (gamepad2) ---
-
-            double intakeMotorPower = 0.0;
-            double midMotorPower    = 0.0;
-            double outTakeMotorLeftPower;
-            double outTakeMotorRightPower;
-            double pusherTargetPos = PUSHER_POS_REST; // Fix: Start with a default value
-            // Intake + mid control
-            // bumpers: intake, triggers: mid motor
-            // 1. SERVO LOGIC (Bumpers)
-            if (gamepad2.right_bumper) {
-                pusherTargetPos = PUSHER_POS_POSITIVE;
-            }
-            // If neither is pressed, it stays at PUSHER_POS_REST (set at the top)
-
-            // 2. INTAKE LOGIC (Triggers + Button A)
             if (gamepad2.right_trigger > 0.1) {
-                midMotorPower = -0.5;
-                intakeMotorPower = -0.75;
+                // Fast intake - intake + mid motors in
+                intakePower = -0.75;
+                midPower    = -0.5;
+            } else if (gamepad2.right_bumper) {
+                // Slow intake - intake + mid motors in slowly
+                intakePower = -0.4;
+                midPower    = -0.3;
             } else if (gamepad2.left_trigger > 0.1) {
-                midMotorPower = -0;
-                intakeMotorPower = -0.75;
-            } else if (gamepad2.dpad_left || gamepad2.dpad_right) {
-                midMotorPower = 0.5;
-                intakeMotorPower = 0.75;
+                // Fast eject - intake + mid motors out
+                intakePower = 0.75;
+                midPower    = 0.5;
             } else if (gamepad2.left_bumper) {
-                midMotorPower = -0.5;
-                intakeMotorPower = 0;
-            }
-            else {
-                midMotorPower = 0.0;
-                intakeMotorPower = 0.0;
-            }
-
-            // --- PUSHER SERVO LOGIC (UPDATED) ---
-            /*
-            if (gamepad1.x) {
-                // Move to "Negative" Position (0.0)
-                pusherTargetPos = PUSHER_POS_POSITIVE;
-            } else if (gamepad1.y) {
-                // Move to "Positive" Position (1.0)
-                pusherTargetPos = PUSHER_POS_NEGATIVE;
+                // Slow eject - intake + mid motors out slowly
+                intakePower = 0.4;
+                midPower    = 0.3;
             } else {
-                // Move to "Rest" Position (0.5) when no button is pressed
-                pusherTargetPos = PUSHER_POS_REST;
-            }  */
-
-            // --- Outtake 4-button toggle logic ---
-
-            boolean isGamepad2A_Pressed = gamepad2.a;
-            boolean isGamepad2B_Pressed = gamepad2.b;
-            boolean isGamepad2X_Pressed = gamepad2.x;
-            boolean isGamepad2Y_Pressed = gamepad2.y;
-
-            // A toggle
-            if (isGamepad2A_Pressed && !wasGamepad2A_Pressed) {
-                outtakeTrim = 0.0; // reset trim whenever A is pressed
-                if (currentOuttakePower == OUTTAKE_POWER_A) {
-                    currentOuttakePower = 0.0;
-                } else {
-                    currentOuttakePower = OUTTAKE_POWER_A;
-                }
+                intakePower = 0.0;
+                midPower    = 0.0;
             }
 
-            // B toggle
-            if (isGamepad2B_Pressed && !wasGamepad2B_Pressed) {
-                outtakeTrim = 0.0; // reset trim whenever B is pressed
-                if (currentOuttakePower == OUTTAKE_POWER_B) {
-                    currentOuttakePower = 0.0;
-                } else {
-                    currentOuttakePower = OUTTAKE_POWER_B;
-                }
+            HW.intakeMotor.setPower(intakePower);
+            HW.midMotor1.setPower(midPower);
+            HW.midMotor2.setPower(midPower);
+
+            // -------------------------------------------------------
+            // OUTTAKE TRIM (Gamepad 2 Dpad Up/Down)
+            // -------------------------------------------------------
+            if (gamepad2.dpad_up && !wasDpadUp)   outtakeTrim += OUTTAKE_TRIM_STEP;
+            if (gamepad2.dpad_down && !wasDpadDown) outtakeTrim -= OUTTAKE_TRIM_STEP;
+            outtakeTrim = Math.max(OUTTAKE_TRIM_MIN, Math.min(OUTTAKE_TRIM_MAX, outtakeTrim));
+            wasDpadUp   = gamepad2.dpad_up;
+            wasDpadDown = gamepad2.dpad_down;
+
+            // -------------------------------------------------------
+            // OUTTAKE TOGGLES (Gamepad 2 A/B/X/Y)
+            // -------------------------------------------------------
+            if (gamepad2.a && !wasGamepad2A) {
+                outtakeTrim = 0.0;
+                currentOuttakePower = (currentOuttakePower == OUTTAKE_POWER_A) ? 0.0 : OUTTAKE_POWER_A;
+            }
+            if (gamepad2.b && !wasGamepad2B) {
+                outtakeTrim = 0.0;
+                currentOuttakePower = (currentOuttakePower == OUTTAKE_POWER_B) ? 0.0 : OUTTAKE_POWER_B;
+            }
+            if (gamepad2.x && !wasGamepad2X) {
+                outtakeTrim = 0.0;
+                currentOuttakePower = (currentOuttakePower == OUTTAKE_POWER_X) ? 0.0 : OUTTAKE_POWER_X;
+            }
+            if (gamepad2.y && !wasGamepad2Y) {
+                outtakeTrim = 0.0;
+                currentOuttakePower = (currentOuttakePower == OUTTAKE_POWER_Y) ? 0.0 : OUTTAKE_POWER_Y;
             }
 
-            // X toggle
-            if (isGamepad2X_Pressed && !wasGamepad2X_Pressed) {
-                outtakeTrim = 0.0; // reset trim whenever X is pressed
-                if (currentOuttakePower == OUTTAKE_POWER_X) {
-                    currentOuttakePower = 0.0;
-                } else {
-                    currentOuttakePower = OUTTAKE_POWER_X;
-                }
-            }
+            wasGamepad2A = gamepad2.a;
+            wasGamepad2B = gamepad2.b;
+            wasGamepad2X = gamepad2.x;
+            wasGamepad2Y = gamepad2.y;
 
-            // Y toggle
-            if (isGamepad2Y_Pressed && !wasGamepad2Y_Pressed) {
-                outtakeTrim = 0.0; // reset trim whenever Y is pressed
-                if (currentOuttakePower == OUTTAKE_POWER_Y) {
-                    currentOuttakePower = 0.0;
-                } else {
-                    currentOuttakePower = OUTTAKE_POWER_Y;
-                }
-            }
+            double trimmedOuttake = Math.max(-1.0, Math.min(1.0, currentOuttakePower + outtakeTrim));
+            HW.outtakeMotor.setPower(trimmedOuttake);
 
-            // Save button states for edge detection
-            wasGamepad2A_Pressed = isGamepad2A_Pressed;
-            wasGamepad2B_Pressed = isGamepad2B_Pressed;
-            wasGamepad2X_Pressed = isGamepad2X_Pressed;
-            wasGamepad2Y_Pressed = isGamepad2Y_Pressed;
-
-            // Same outtake power to both motors (WITH TRIM)
-            double trimmedOuttakePower = currentOuttakePower + outtakeTrim;
-            trimmedOuttakePower = Math.max(-1.0, Math.min(1.0, trimmedOuttakePower));
-
-            outTakeMotorLeftPower  = trimmedOuttakePower;
-            outTakeMotorRightPower = trimmedOuttakePower;
-
-            // Apply intake / mid / outtake powers
-            HW.intakeMotor.setPower(intakeMotorPower);
-            HW.midMotor.setPower(midMotorPower);
-            HW.outTakeLeft.setPower(outTakeMotorLeftPower);
-            HW.outTakeRight.setPower(outTakeMotorRightPower);
-
-            // Apply servo position (This replaces setPower)
-            HW.pusherServo.setPosition(pusherTargetPos);
-
-            // --- OUTTAKE RPM UPDATE ---
-
-            long now = System.nanoTime();
-            double dt = (now - lastOuttakeSampleTimeNs) / 1_000_000_000.0; // seconds
-
-            if (dt > 0.05) { // ~20 Hz update
-                int pos1 = HW.outTakeLeft.getCurrentPosition();
-                int pos2 = HW.outTakeRight.getCurrentPosition();
-
-                double revs1 = (pos1 - lastOuttake1Pos) / OUTTAKE_TICKS_PER_REV;
-                double revs2 = (pos2 - lastOuttake2Pos) / OUTTAKE_TICKS_PER_REV;
-
-                outtake1Rpm = (revs1 / dt) * 60.0;
-                outtake2Rpm = (revs2 / dt) * 60.0;
-
-                lastOuttake1Pos = pos1;
-                lastOuttake2Pos = pos2;
-                lastOuttakeSampleTimeNs = now;
-            }
-
-            // --- TELEMETRY ---
-
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Intake Power", "%.2f", intakeMotorPower);
-            telemetry.addData("Mid Power", "%.2f", midMotorPower);
-            telemetry.addData("Outtake Power", "%.2f", currentOuttakePower);
-            telemetry.addData("Outtake Trim", "%.2f", outtakeTrim);
-            telemetry.addData("Outtake Cmd", "%.2f", trimmedOuttakePower);
-            telemetry.addData("Pusher Pos", "%.2f", pusherTargetPos); // Added telemetry for servo
-            telemetry.addData("Outtake1 RPM", "%.0f", outtake1Rpm);
-            telemetry.addData("Outtake2 RPM", "%.0f", outtake2Rpm);
-            telemetry.addData("Δ RPM", "%.0f", (outtake1Rpm - outtake2Rpm));
-
+            // -------------------------------------------------------
+            // TELEMETRY
+            // -------------------------------------------------------
+            telemetry.addData("Status",       "Run Time: " + runtime.toString());
+            telemetry.addData("Drive L/R Front", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
+            telemetry.addData("Drive L/R Back",  "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("Intake Power",    "%.2f", intakePower);
+            telemetry.addData("Mid Power",       "%.2f", midPower);
+            telemetry.addData("Outtake Power",   "%.2f", currentOuttakePower);
+            telemetry.addData("Outtake Trim",    "%.2f", outtakeTrim);
+            telemetry.addData("Outtake Cmd",     "%.2f", trimmedOuttake);
             telemetry.update();
         }
     }

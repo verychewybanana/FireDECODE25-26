@@ -14,11 +14,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
  * 3) Yaw:      Rotating Clockwise and counter clockwise   Right-joystick Right and Left
  *
  **/
-
+/*
 @TeleOp(name="Outtake Mech TeleOp", group="Linear Opmode")
 public class OuttakeRPMTest extends LinearOpMode {
 
-    /*
     Controls for gamepad2
     Dpad down - lower slides
     Dpad up - raise slides to high level
@@ -32,7 +31,7 @@ public class OuttakeRPMTest extends LinearOpMode {
     Left trigger - intake out slowly (reverse)
     Right trigger - intake out faster (reverse)
     */
-
+/*
     private ElapsedTime runtime = new ElapsedTime();
     private FireHardwareMap HW = null;
 
@@ -252,3 +251,6 @@ public class OuttakeRPMTest extends LinearOpMode {
     }
 }
 
+
+
+ */

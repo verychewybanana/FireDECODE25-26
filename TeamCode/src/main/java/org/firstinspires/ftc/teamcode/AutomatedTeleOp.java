@@ -8,7 +8,7 @@ import android.util.Size;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.ColorSensing.GreenPurpleProcessor;
 import org.firstinspires.ftc.vision.VisionPortal;
-
+/*
 @TeleOp(name="Automated TeleOpp", group="Linear Opmode")
 public class AutomatedTeleOp extends LinearOpMode {
 
@@ -190,3 +190,5 @@ public class AutomatedTeleOp extends LinearOpMode {
         }
     }
 }
+
+ */

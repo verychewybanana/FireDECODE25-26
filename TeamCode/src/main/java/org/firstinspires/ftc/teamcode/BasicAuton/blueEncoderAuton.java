@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.FireHardwareMap;
+/*
 @Autonomous(name="blueEncoderAuton", group="Auton")
 public class blueEncoderAuton extends LinearOpMode {
 
@@ -94,8 +95,9 @@ public class blueEncoderAuton extends LinearOpMode {
         robot.outTakeRight.setPower(0);
 
     }
-
-
-
-
 }
+ */
+
+
+
+

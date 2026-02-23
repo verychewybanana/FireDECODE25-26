@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.hardware.limelightvision.LLResult;
-
+/*
 @TeleOp(name="Combined TeleOp Auto-Aim", group="Linear Opmode")
 public class AutoAimTeleOp extends LinearOpMode {
 
@@ -263,4 +263,7 @@ public class AutoAimTeleOp extends LinearOpMode {
 
         HW.limelight.stop();
     }
+
 }
+
+ */
