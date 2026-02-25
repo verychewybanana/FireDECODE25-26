@@ -72,8 +72,8 @@ public class CombinedTeleOp extends LinearOpMode {
             // -------------------------------------------------------
             // DRIVE (Gamepad 1)
             // -------------------------------------------------------
-            double axial   =  gamepad1.left_stick_y;
-            double lateral = -gamepad1.left_stick_x * 1.1;
+            double axial   =  -gamepad1.left_stick_y;
+            double lateral = gamepad1.left_stick_x * 1.1;
             double yaw     =  gamepad1.right_stick_x;
 
             double leftFrontPower  = axial + lateral + yaw;

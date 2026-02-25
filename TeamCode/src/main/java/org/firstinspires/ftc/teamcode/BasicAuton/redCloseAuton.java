@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@Autonomous(name = "Tuning Constants", group = "Autonomous")
-public class TuneConstants extends LinearOpMode {
+@Autonomous(name = "Red Close Auton", group = "Autonomous")
+public class redCloseAuton extends LinearOpMode {
 
     private FireHardwareMap HW;
 
@@ -27,9 +27,39 @@ public class TuneConstants extends LinearOpMode {
         waitForStart();
         if (!opModeIsActive()) return;
 
-        //drive(-30);
-        //sleep(10000);
-        turn(45);
+        HW.outtakeMotor.setPower(0.8);
+
+        drive(-30);
+
+        startIntakeAndMid();
+        sleep(3000);
+        stopIntakeAndMid();
+
+        HW.outtakeMotor.setPower(0);
+
+        drive(-32);
+
+        turn(35);
+
+        startIntakeAndMid();
+        drive(58);
+        sleep(1500);
+        reverseIntakeAndMid();
+        sleep(350);
+        stopIntakeAndMid();
+
+        HW.outtakeMotor.setPower(0.8);
+        drive(-58);
+        turn(-35);
+        drive(32);
+        sleep(500);
+
+        startIntakeAndMid();
+        sleep(2000);
+        stopIntakeAndMid();
+
+        HW.outtakeMotor.setPower(0);
+        setDrivePower(0);
     }
 
     // ===================== DRIVE =====================
@@ -51,10 +81,10 @@ public class TuneConstants extends LinearOpMode {
         double target = -degrees;
         double absDeg = Math.abs(degrees);
         double turnPower = 0.6;
-        double rampZone = absDeg * 0.33;       // start slowing at 33% remaining
+        double rampZone = absDeg * 0.33;
         double coarseTolerance = 1.0;
         double fineTolerance = 0.3;
-        long timeout = (long)(absDeg * 33) + 1000;  // scales with angle + 1s buffer
+        long timeout = (long)(absDeg * 33) + 1000;
         long startTime = System.currentTimeMillis();
 
         // Phase 1: Fast approach
@@ -86,7 +116,6 @@ public class TuneConstants extends LinearOpMode {
             idle();
         }
 
-        // Stop and let momentum settle
         setDrivePower(0);
         sleep(250);
 
@@ -127,6 +156,26 @@ public class TuneConstants extends LinearOpMode {
                 && HW.rightBack.isBusy()) {
             idle();
         }
+    }
+
+    // ===================== MECHANISMS =====================
+
+    private void startIntakeAndMid() {
+        HW.intakeMotor.setPower(-0.75);
+        HW.midMotor1.setPower(-0.5);
+        HW.midMotor2.setPower(-0.5);
+    }
+
+    private void reverseIntakeAndMid() {
+        HW.intakeMotor.setPower(0.35);
+        HW.midMotor1.setPower(0.175);
+        HW.midMotor2.setPower(0.175);
+    }
+
+    private void stopIntakeAndMid() {
+        HW.intakeMotor.setPower(0);
+        HW.midMotor1.setPower(0);
+        HW.midMotor2.setPower(0);
     }
 
     // ===================== UTILITY =====================
