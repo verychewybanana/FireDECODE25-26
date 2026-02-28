@@ -32,10 +32,10 @@ public class CombinedTeleOp extends LinearOpMode {
     private FireHardwareMap HW = null;
 
     // --- OUTTAKE POWER PRESETS ---
-    public final double OUTTAKE_POWER_A = 0.2;
-    public final double OUTTAKE_POWER_X = 0.4;
-    public final double OUTTAKE_POWER_Y = 0.7;
-    public final double OUTTAKE_POWER_B = 0.8;
+    public final double OUTTAKE_POWER_A = 0.45;
+    public final double OUTTAKE_POWER_X = 0.5;
+    public final double OUTTAKE_POWER_Y = 0.56;
+    public final double OUTTAKE_POWER_B = 0.65;
 
     private double currentOuttakePower = 0.0;
 
@@ -122,10 +122,10 @@ public class CombinedTeleOp extends LinearOpMode {
             } else if (gamepad2.left_trigger > 0.1) {
                 // Fast eject - intake + mid motors out
                 intakePower = 0.75;
-                midPower    = 0.5;
+                //midPower    = 0.5;
             } else if (gamepad2.left_bumper) {
                 // Slow eject - intake + mid motors out slowly
-                intakePower = 0.4;
+                //intakePower = 0.4;
                 midPower    = 0.3;
             } else {
                 intakePower = 0.0;

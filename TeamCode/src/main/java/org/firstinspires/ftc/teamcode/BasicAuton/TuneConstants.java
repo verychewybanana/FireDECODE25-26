@@ -10,7 +10,8 @@ public class TuneConstants extends LinearOpMode {
 
     private FireHardwareMap HW;
 
-    double ticksPerInch = 42.2;
+    double ticksPerInch       = 42.2;
+    double ticksPerInchStrafe = 50.6;  // tune this
 
     @Override
     public void runOpMode() {
@@ -27,9 +28,10 @@ public class TuneConstants extends LinearOpMode {
         waitForStart();
         if (!opModeIsActive()) return;
 
+        // Uncomment one at a time to tune:
         //drive(-30);
-        //sleep(10000);
-        turn(45);
+        //turn(45);
+        strafe(12);  // positive = right, negative = left
     }
 
     // ===================== DRIVE =====================
@@ -44,6 +46,17 @@ public class TuneConstants extends LinearOpMode {
         setDrivePower(0);
     }
 
+    private void strafe(double inches) {
+        int ticks = (int) (inches * ticksPerInchStrafe);
+
+        setDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        // Mecanum strafe: FL+, FR-, BL-, BR+
+        setDriveTargets(ticks, -ticks, -ticks, ticks);
+        setDrivePower(0.4);
+        waitForDrive();
+        setDrivePower(0);
+    }
+
     private void turn(double degrees) {
         setDriveMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -51,13 +64,12 @@ public class TuneConstants extends LinearOpMode {
         double target = -degrees;
         double absDeg = Math.abs(degrees);
         double turnPower = 0.6;
-        double rampZone = absDeg * 0.33;       // start slowing at 33% remaining
+        double rampZone = absDeg * 0.33;
         double coarseTolerance = 1.0;
         double fineTolerance = 0.3;
-        long timeout = (long)(absDeg * 33) + 1000;  // scales with angle + 1s buffer
+        long timeout = (long)(absDeg * 33) + 1000;
         long startTime = System.currentTimeMillis();
 
-        // Phase 1: Fast approach
         while (opModeIsActive() && (System.currentTimeMillis() - startTime) < timeout) {
             double current = HW.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
             double error = target - current;
@@ -86,11 +98,9 @@ public class TuneConstants extends LinearOpMode {
             idle();
         }
 
-        // Stop and let momentum settle
         setDrivePower(0);
         sleep(250);
 
-        // Phase 2: Fine correction
         startTime = System.currentTimeMillis();
         while (opModeIsActive() && (System.currentTimeMillis() - startTime) < 1500) {
             double current = HW.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);

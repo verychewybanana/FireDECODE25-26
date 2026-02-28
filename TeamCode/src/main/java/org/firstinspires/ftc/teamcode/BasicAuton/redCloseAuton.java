@@ -11,6 +11,7 @@ public class redCloseAuton extends LinearOpMode {
     private FireHardwareMap HW;
 
     double ticksPerInch = 42.2;
+    double ticksPerInchStrafe = 50.6;
 
     @Override
     public void runOpMode() {
@@ -27,49 +28,124 @@ public class redCloseAuton extends LinearOpMode {
         waitForStart();
         if (!opModeIsActive()) return;
 
-        HW.outtakeMotor.setPower(0.8);
+        HW.outtakeMotor.setPower(0.59);
 
-        drive(-30);
+        strafe(-8);
+        drive(-30, 0.75);
 
-        startIntakeAndMid();
-        sleep(3000);
+        //pulseShoot(1600, 0.6, 200, 300);
+        startIntakeAndMid(0.6);
+        sleep(250);
         stopIntakeAndMid();
+        sleep(300);
+        //HW.outtakeMotor.setPower(0.54);
+        startIntakeAndMid(0.6);
+        sleep(400);
+        stopIntakeAndMid();
+        sleep(300);
+        HW.outtakeMotor.setPower(0.62);
+        startIntakeAndMid(0.7);
+        sleep(1000);
+        HW.outtakeMotor.setPower(0);
 
         HW.outtakeMotor.setPower(0);
 
-        drive(-32);
+        drive(-10, 0.5);
 
-        turn(35);
+        turn(48.5);
 
-        startIntakeAndMid();
-        drive(58);
-        sleep(1500);
+        strafe(8.5);
+
+        startIntakeAndMid(0.6);
+        drive(30, 0.7);
+        drive(15, 0.4);
+        sleep(750);
         reverseIntakeAndMid();
         sleep(350);
         stopIntakeAndMid();
 
-        HW.outtakeMotor.setPower(0.8);
-        drive(-58);
-        turn(-35);
-        drive(32);
+        drive(-37, 0.75);
+        HW.outtakeMotor.setPower(0.63);
+        turn(-47);
         sleep(500);
 
-        startIntakeAndMid();
-        sleep(2000);
+        //pulseShoot(1600, 0.6, 200, 300);
+        drive(5, 0.75);
+        startIntakeAndMid(0.6);
+        sleep(250);
+        stopIntakeAndMid();
+        sleep(300);
+        //HW.outtakeMotor.setPower(0.59);
+        startIntakeAndMid(0.6);
+        sleep(400);
+        stopIntakeAndMid();
+        sleep(300);
+        HW.outtakeMotor.setPower(0.65);
+        startIntakeAndMid(0.7);
+        sleep(1300);
+        HW.outtakeMotor.setPower(0);
+
+        drive(-10, 0.4);
+        turn(51.5);
+
+        strafe(20.35);
+
+        startIntakeAndMid(0.6);
+        drive(48, 0.7);
+        drive(10, 0.4);
+        sleep(1250);
+        reverseIntakeAndMid();
+        sleep(350);
         stopIntakeAndMid();
 
+        drive(-35, 0.75);
+        strafe(-30);
+
+        HW.outtakeMotor.setPower(0.62);
+        turn(-58);
+        sleep(500);
+
+        //pulseShoot(1500, 0.6, 200, 300);
+        //drive(3, 0.75);
+        startIntakeAndMid(0.6);
+        sleep(250);
+        stopIntakeAndMid();
+        sleep(300);
+        //HW.outtakeMotor.setPower(0.58);
+        startIntakeAndMid(0.6);
+        sleep(400);
+        stopIntakeAndMid();
+        sleep(300);
+        HW.outtakeMotor.setPower(0.62);
+        startIntakeAndMid(0.7);
+        sleep(1100);
         HW.outtakeMotor.setPower(0);
+
         setDrivePower(0);
+        drive(-10, 0.75);
+
+        strafe(10);
+        turn(50);
     }
 
     // ===================== DRIVE =====================
 
-    private void drive(double inches) {
+    private void drive(double inches, double power) {
         int ticks = (int) (inches * ticksPerInch);
 
         setDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         setDriveTargets(ticks, ticks, ticks, ticks);
-        setDrivePower(0.5);
+        setDrivePower(power);
+        waitForDrive();
+        setDrivePower(0);
+    }
+
+    private void strafe(double inches) {
+        int ticks = (int) (inches * ticksPerInchStrafe);
+
+        setDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setDriveTargets(ticks, -ticks, -ticks, ticks);
+        setDrivePower(0.7);
         waitForDrive();
         setDrivePower(0);
     }
@@ -87,7 +163,6 @@ public class redCloseAuton extends LinearOpMode {
         long timeout = (long)(absDeg * 33) + 1000;
         long startTime = System.currentTimeMillis();
 
-        // Phase 1: Fast approach
         while (opModeIsActive() && (System.currentTimeMillis() - startTime) < timeout) {
             double current = HW.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
             double error = target - current;
@@ -119,7 +194,6 @@ public class redCloseAuton extends LinearOpMode {
         setDrivePower(0);
         sleep(250);
 
-        // Phase 2: Fine correction
         startTime = System.currentTimeMillis();
         while (opModeIsActive() && (System.currentTimeMillis() - startTime) < 1500) {
             double current = HW.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
@@ -160,10 +234,24 @@ public class redCloseAuton extends LinearOpMode {
 
     // ===================== MECHANISMS =====================
 
-    private void startIntakeAndMid() {
-        HW.intakeMotor.setPower(-0.75);
-        HW.midMotor1.setPower(-0.5);
-        HW.midMotor2.setPower(-0.5);
+    // Pulses intake/mid to feed one ball at a time, letting outtake recover between shots
+    private void pulseShoot(long totalMs, double feedPower, long feedMs, long recoveryMs) {
+        long startTime = System.currentTimeMillis();
+        while (opModeIsActive() && (System.currentTimeMillis() - startTime) < totalMs) {
+            startIntakeAndMid(feedPower);
+            sleep(feedMs);
+            stopIntakeAndMid();
+            if ((System.currentTimeMillis() - startTime) < totalMs) {
+                sleep(recoveryMs);
+            }
+        }
+        stopIntakeAndMid();
+    }
+
+    private void startIntakeAndMid(double power) {
+        HW.intakeMotor.setPower(-power * 1.5);
+        HW.midMotor1.setPower(-power);
+        HW.midMotor2.setPower(-power);
     }
 
     private void reverseIntakeAndMid() {
@@ -202,3 +290,6 @@ public class redCloseAuton extends LinearOpMode {
         HW.rightBack.setPower(power);
     }
 }
+/*
+
+ */
